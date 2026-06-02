@@ -15,9 +15,9 @@ export async function GET(req: NextRequest) {
         user: { select: { email: true, createdAt: true } },
         doctor: { select: { name: true, specialization: true, phone: true } },
         caregivers: { include: { caregiver: { select: { name: true, phone: true } } } },
-        medications: { where: { active: true } },
-        reminders: { where: { completed: false }, orderBy: { dateTime: "asc" }, take: 3 },
-        emergencyContacts: { where: { isPrimary: true } },
+        medications: { where: { active: true }, select: { name: true, dosage: true, timeOfDay: true, frequency: true } },
+        reminders: { where: { completed: false }, orderBy: { dateTime: "asc" }, take: 5, select: { title: true, dateTime: true, description: true } },
+        emergencyContacts: { select: { name: true, phone: true, relationship: true, isPrimary: true } },
       },
       orderBy: { createdAt: "desc" },
     });
