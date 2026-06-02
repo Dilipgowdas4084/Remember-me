@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-info-blue: var(--info-blue);
+  --color-info-blue-foreground: var(--info-blue-foreground);
+  --color-warning-orange: var(--warning-orange);
+  --color-warning-orange-foreground: var(--warning-orange-foreground);
+  --color-radius: var(--radius);
+  
+  --font-sans: var(--font-outfit);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #fbfbfd;
+  --foreground: #1c1c1e;
+  
+  --card: #ffffff;
+  --card-foreground: #1c1c1e;
+  
+  --primary: #8a7df0; /* Soft Lavender */
+  --primary-foreground: #ffffff;
+  
+  --secondary: #e8e6fb; /* Light Pastel Lavender */
+  --secondary-foreground: #4a3e91;
+  
+  --accent: #a0d8b3; /* Soft Pastel Green */
+  --accent-foreground: #1f4d2b;
+  
+  --muted: #f4f4f7;
+  --muted-foreground: #5e5e62;
+  
+  --info-blue: #a3c9e8; /* Soft Blue */
+  --info-blue-foreground: #1e3d59;
+
+  --warning-orange: #ffd09b; /* Soft Orange */
+  --warning-orange-foreground: #5c3b12;
+
+  --border: #e4e4e7;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #0f0f15;
+  --foreground: #f5f5f7;
+  
+  --card: #161622;
+  --card-foreground: #f5f5f7;
+  
+  --primary: #9b8ff3;
+  --primary-foreground: #000000;
+  
+  --secondary: #272542;
+  --secondary-foreground: #dfdaf8;
+  
+  --accent: #5ba374;
+  --accent-foreground: #f5f5f7;
+  
+  --muted: #1e1e2d;
+  --muted-foreground: #a0a0a5;
+  
+  --info-blue: #2a4c6a;
+  --info-blue-foreground: #e1f0fc;
+
+  --warning-orange: #7a5020;
+  --warning-orange-foreground: #ffe4c4;
+  
+  --border: #2c2c3e;
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(to right, #f8bbd0, #ffffff, #bbdefb);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.dark body,
+body.dark {
+  background: var(--background);
+}
+
+/* Accessibility classes */
+.text-lg-accessible {
+  font-size: 1.125rem !important; /* 18px */
+}
+.text-xl-accessible {
+  font-size: 1.375rem !important; /* 22px */
+}
+.text-2xl-accessible {
+  font-size: 1.75rem !important; /* 28px */
+}
+.text-3xl-accessible {
+  font-size: 2.25rem !important; /* 36px */
+}
+
+/* Glassmorphism helpers */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-card {
+  background: rgba(22, 22, 34, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Calming breathing pulse animation */
+@keyframes calmPulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.animate-calm-pulse {
+  animation: calmPulse 4s ease-in-out infinite;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }

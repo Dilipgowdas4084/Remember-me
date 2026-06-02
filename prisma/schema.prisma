@@ -1,0 +1,241 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  DOCTOR
+  PATIENT
+  CAREGIVER
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  doctor       Doctor?
+  patient      Patient?
+  caregiver    Caregiver?
+
+  @@map("users")
+}
+
+model Doctor {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  specialization String?
+  phone          String?
+  patients       Patient[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("doctors")
+}
+
+model Patient {
+  id                String             @id @default(uuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  age               Int
+  bloodGroup        String?
+  address           String?
+  emergencyContact  String?
+  profileImage      String?
+  doctorId          String
+  doctor            Doctor             @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  caregivers        PatientAssignment[]
+  memories          Memory[]
+  knownPeople       KnownPerson[]
+  places            Place[]
+  allergies         Allergy[]
+  medications       Medication[]
+  reminders         Reminder[]
+  journals          Journal[]
+  emergencyContacts EmergencyContact[]
+  voiceNotes        VoiceNote[]
+  latitude          Float?
+  longitude         Float?
+  locationUpdatedAt DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("patients")
+}
+
+model Caregiver {
+  id                   String              @id @default(uuid())
+  userId               String              @unique
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String
+  phone                String?
+  relationshipToPatient String?
+  patients             PatientAssignment[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@map("caregivers")
+}
+
+model PatientAssignment {
+  id             String    @id @default(uuid())
+  patientId      String
+  patient        Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  caregiverId    String
+  caregiver      Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  canEditMedical Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([patientId, caregiverId])
+  @@map("patient_assignments")
+}
+
+model Memory {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  category    String   // PERSON, PLACE, ROUTINE, MEDICATION, OTHER
+  mediaUrl    String?
+  mediaType   String?  // IMAGE, VIDEO
+  voiceUrl    String?
+  isNarrated  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("memories")
+}
+
+model KnownPerson {
+  id             String   @id @default(uuid())
+  patientId      String
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name           String
+  relationship   String
+  description    String
+  photoUrl       String?
+  voiceUrl       String?
+  positiveMemory String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("known_people")
+}
+
+model Place {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name        String
+  address     String?
+  description String
+  photoUrl    String?
+  voiceUrl    String?
+  mapsUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("places")
+}
+
+model Allergy {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type      String   // FOOD, MEDICINE, ENVIRONMENT, OTHER
+  item      String
+  reaction  String?
+  severity  String   // LOW, MEDIUM, HIGH
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("allergies")
+}
+
+model Medication {
+  id           String   @id @default(uuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String
+  dosage       String
+  frequency    String
+  timeOfDay    String   // Morning, Afternoon, Night
+  reminderTime String?  // HH:MM
+  imageUrl     String?
+  instructions String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("medications")
+}
+
+model Reminder {
+  id               String   @id @default(uuid())
+  patientId        String
+  patient          Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  dateTime         DateTime
+  completed        Boolean  @default(false)
+  voiceReminderUrl String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("reminders")
+}
+
+model Journal {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  mediaUrl  String?
+  mediaType String?  // IMAGE, VIDEO, VOICE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("journals")
+}
+
+model EmergencyContact {
+  id           String   @id @default(uuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String
+  relationship String
+  phone        String
+  isPrimary    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("emergency_contacts")
+}
+
+model VoiceNote {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title     String
+  audioUrl  String
+  duration  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("voice_notes")
+}

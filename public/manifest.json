@@ -1,0 +1,9 @@
+{
+  "name": "RememberMe Alzheimer's Memory Platform",
+  "short_name": "RememberMe",
+  "description": "An emotionally comforting, highly accessible platform assisting Alzheimer's patients, caregivers, and doctors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbfbfd",
+  "theme_color": "#8a7df0"
+}
