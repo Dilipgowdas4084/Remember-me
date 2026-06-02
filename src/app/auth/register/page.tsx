@@ -13,10 +13,11 @@ interface DoctorItem {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"DOCTOR" | "PATIENT" | "CAREGIVER">("DOCTOR");
+  const [role, setRole] = useState<"DOCTOR" | "PATIENT" | "CAREGIVER" | "SUPERVISOR">("DOCTOR");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [supervisorCode, setSupervisorCode] = useState("");
   
   // Doctor fields
   const [specialization, setSpecialization] = useState("");
@@ -83,6 +84,8 @@ export default function RegisterPage() {
       payload.address = address;
       payload.emergencyContact = emergencyContact;
       payload.doctorId = doctorId;
+    } else if (role === "SUPERVISOR") {
+      payload.supervisorCode = supervisorCode;
     }
 
     try {
@@ -96,7 +99,7 @@ export default function RegisterPage() {
       if (res.ok) {
         // Registration logs them in automatically (sets token cookie)
         // Refresh and redirect
-        window.location.href = role === "DOCTOR" ? "/doctor" : role === "CAREGIVER" ? "/caregiver" : "/patient";
+        window.location.href = role === "DOCTOR" ? "/doctor" : role === "CAREGIVER" ? "/caregiver" : role === "SUPERVISOR" ? "/supervisor" : "/patient";
       } else {
         setError(data.error || "Failed to register account.");
         setLoading(false);
@@ -126,19 +129,21 @@ export default function RegisterPage() {
         </div>
 
         {/* Role Selector Tabs */}
-        <div className="grid grid-cols-3 gap-2 bg-muted p-1.5 rounded-xl mb-6">
-          {(["DOCTOR", "CAREGIVER", "PATIENT"] as const).map((r) => (
+        <div className="grid grid-cols-4 gap-2 bg-muted p-1.5 rounded-xl mb-6">
+          {(["DOCTOR", "CAREGIVER", "PATIENT", "SUPERVISOR"] as const).map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setRole(r)}
               className={`py-2 rounded-lg text-xs font-bold transition ${
-                role === r 
-                  ? "bg-card text-foreground shadow-sm" 
+                role === r
+                  ? r === "SUPERVISOR"
+                    ? "bg-violet-600 text-white shadow-sm"
+                    : "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {r.charAt(0) + r.slice(1).toLowerCase()}
+              {r === "SUPERVISOR" ? "🔒 Supervisor" : r.charAt(0) + r.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -310,6 +315,29 @@ export default function RegisterPage() {
                     ))}
                   </select>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* SUPERVISOR SPECIFIC FIELDS */}
+          {role === "SUPERVISOR" && (
+            <div className="flex flex-col gap-3 border border-violet-500/30 bg-violet-500/5 rounded-2xl p-4">
+              <div className="flex items-center gap-2 text-violet-600 font-bold text-sm">
+                <Shield className="w-4 h-4" /> Supervisor Access
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Supervisor accounts have silent, read-only access to all doctors and patients. An access code is required.
+              </p>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Supervisor Access Code</label>
+                <input
+                  required
+                  type="password"
+                  value={supervisorCode}
+                  onChange={(e) => setSupervisorCode(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-violet-500/40 bg-background text-sm focus:outline-none focus:border-violet-500"
+                  placeholder="Enter your access code"
+                />
               </div>
             </div>
           )}

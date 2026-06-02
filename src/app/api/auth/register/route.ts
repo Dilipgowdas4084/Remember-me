@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       profileImage,
       doctorId,
       phone,
+      supervisorCode,
     } = body;
 
     // Validation
@@ -93,6 +94,17 @@ export async function POST(req: NextRequest) {
             relationshipToPatient,
           },
         });
+      } else if (role === Role.SUPERVISOR) {
+        const secret = process.env.SUPERVISOR_SECRET || "rememberme-supervisor-2026";
+        if (supervisorCode !== secret) {
+          throw new Error("Invalid supervisor access code.");
+        }
+        await tx.supervisor.create({
+          data: {
+            userId: newUser.id,
+            name,
+          },
+        });
       }
 
       return newUser;
@@ -105,6 +117,7 @@ export async function POST(req: NextRequest) {
         doctor: true,
         patient: true,
         caregiver: true,
+        supervisor: true,
       },
     });
 
@@ -122,7 +135,7 @@ export async function POST(req: NextRequest) {
         id: userDetails?.id,
         email: userDetails?.email,
         role: userDetails?.role,
-        profile: userDetails?.doctor || userDetails?.patient || userDetails?.caregiver,
+        profile: userDetails?.doctor || userDetails?.patient || userDetails?.caregiver || userDetails?.supervisor,
       },
     });
 

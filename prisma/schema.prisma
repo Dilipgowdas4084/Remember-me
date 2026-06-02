@@ -13,6 +13,7 @@ enum Role {
   DOCTOR
   PATIENT
   CAREGIVER
+  SUPERVISOR
 }
 
 model User {
@@ -26,6 +27,7 @@ model User {
   doctor       Doctor?
   patient      Patient?
   caregiver    Caregiver?
+  supervisor   Supervisor?
 
   @@map("users")
 }
@@ -73,6 +75,17 @@ model Patient {
   updatedAt         DateTime           @updatedAt
 
   @@map("patients")
+}
+
+model Supervisor {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("supervisors")
 }
 
 model Caregiver {

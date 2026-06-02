@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 interface User {
   id: string;
   email: string;
-  role: "DOCTOR" | "PATIENT" | "CAREGIVER";
+  role: "DOCTOR" | "PATIENT" | "CAREGIVER" | "SUPERVISOR";
   profile?: any;
 }
 
@@ -180,6 +180,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         if (data.user.role === "DOCTOR") router.push("/doctor");
         else if (data.user.role === "CAREGIVER") router.push("/caregiver");
         else if (data.user.role === "PATIENT") router.push("/patient");
+        else if (data.user.role === "SUPERVISOR") router.push("/supervisor");
 
         return { success: true };
       } else {
