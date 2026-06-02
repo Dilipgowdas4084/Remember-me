@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RememberMe — Calm Alzheimer's Care & Memory Platform</title>
+  <meta name="description" content="An emotionally supportive and highly accessible platform designed to help Alzheimer's patients stay connected to their families, routines, medications, and doctors." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #8a7df0;
+      --primary-dark: #6c5fe0;
+      --secondary: #e8e6fb;
+      --accent: #a0d8b3;
+      --accent-fg: #1f4d2b;
+      --info-blue: #a3c9e8;
+      --info-blue-fg: #1e3d59;
+      --warning: #ffd09b;
+      --warning-fg: #5c3b12;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --muted: #f4f4f7;
+      --muted-fg: #5e5e62;
+      --foreground: #1c1c1e;
+      --radius: 1rem;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      color: var(--foreground);
+      background: linear-gradient(to right, #f8bbd0, #ffffff, #bbdefb);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    /* ── KEYFRAMES ── */
+    @keyframes calmPulse {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50%       { transform: scale(1.04); opacity: 1; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+
+    .animate-pulse-calm { animation: calmPulse 4s ease-in-out infinite; }
+    .fade-up { animation: fadeUp 0.7s ease both; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+    .logo-dot {
+      width: 2.4rem; height: 2.4rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--info-blue));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 10px rgba(138,125,240,0.35);
+    }
+    .logo-dot svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo-text {
+      font-weight: 800;
+      font-size: 1.2rem;
+      background: linear-gradient(90deg, var(--primary), #4a3e91);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 2rem; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--muted-fg);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; border-radius: 999px; font-weight: 600; font-size: 0.875rem; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--foreground); }
+    .btn-outline:hover { background: var(--muted); }
+    .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(138,125,240,0.3); }
+    .btn-primary:hover { box-shadow: 0 4px 16px rgba(138,125,240,0.45); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 5rem 2rem 4rem;
+      max-width: 72rem;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .hero { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: var(--secondary);
+      color: #4a3e91;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid rgba(138,125,240,0.2);
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero p {
+      color: var(--muted-fg);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      max-width: 32rem;
+      margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .btn-lg { padding: 0.85rem 2rem; font-size: 1rem; border-radius: 999px; }
+
+    /* ── DEMO CARD ── */
+    .demo-card {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.6);
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      box-shadow: 0 8px 40px rgba(138,125,240,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-card-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--info-blue), var(--accent));
+    }
+    .demo-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+    .demo-avatar { width: 3.2rem; height: 3.2rem; border-radius: 0.75rem; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: #4a3e91; }
+    .demo-meta h3 { font-weight: 700; font-size: 1rem; }
+    .demo-meta p { font-size: 0.75rem; color: var(--muted-fg); }
+    .demo-person-card { background: rgba(255,255,255,0.8); border: 1px solid rgba(228,228,231,0.6); border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; }
+    .demo-person-card .label { font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+    .demo-person-card .name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+    .demo-person-card .desc { font-size: 0.82rem; color: var(--muted-fg); line-height: 1.5; }
+    .demo-btns { display: flex; gap: 0.75rem; }
+    .demo-btn { flex: 1; padding: 0.65rem 0.75rem; border-radius: 0.75rem; border: none; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .demo-btn-a { background: var(--secondary); color: #4a3e91; }
+    .demo-btn-a:hover { background: var(--primary); color: white; }
+    .demo-btn-b { background: rgba(160,216,179,0.2); color: var(--accent-fg); }
+    .demo-btn-b:hover { background: rgba(160,216,179,0.4); }
+    .demo-glow-1 { position: absolute; top: -1.5rem; right: -1.5rem; width: 6rem; height: 6rem; background: rgba(138,125,240,0.1); border-radius: 50%; filter: blur(20px); }
+    .demo-glow-2 { position: absolute; bottom: -2rem; left: -2rem; width: 8rem; height: 8rem; background: rgba(160,216,179,0.12); border-radius: 50%; filter: blur(24px); }
+
+    /* ── SECTION ── */
+    section { padding: 4rem 2rem; }
+    .section-inner { max-width: 72rem; margin: 0 auto; }
+    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; }
+    .section-sub { color: var(--muted-fg); font-size: 1rem; margin-top: 0.75rem; max-width: 40rem; }
+    .text-center { text-align: center; margin-left: auto; margin-right: auto; }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      transition: box-shadow 0.25s, transform 0.25s;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .feature-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.09); transform: translateY(-2px); }
+    .feature-icon {
+      width: 3rem; height: 3rem;
+      border-radius: 0.75rem;
+      background: var(--secondary);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .feature-icon svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .feature-icon.accent svg { stroke: var(--accent-fg); }
+    .feature-icon.blue svg { stroke: var(--info-blue-fg); }
+    .feature-icon.orange svg { stroke: var(--warning-fg); }
+    .feature-card h3 { font-weight: 700; font-size: 1.1rem; }
+    .feature-card p { color: var(--muted-fg); font-size: 0.875rem; line-height: 1.65; }
+
+    /* ── LOCATION BADGE ── */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #b91c1c;
+      background: #fee2e2;
+      border-radius: 999px;
+      padding: 0.25rem 0.65rem;
+    }
+    .ping-dot {
+      width: 0.5rem; height: 0.5rem;
+      background: #ef4444;
+      border-radius: 50%;
+      display: inline-block;
+      animation: calmPulse 1.5s ease-in-out infinite;
+    }
+
+    /* ── MISSION ── */
+    .mission { background: rgba(244,244,247,0.5); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .mission-inner { max-width: 48rem; margin: 0 auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+    .mission-heart svg { width: 2.5rem; height: 2.5rem; fill: none; stroke: var(--primary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .mission blockquote { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.4; }
+    .mission p { color: var(--muted-fg); font-size: 1rem; line-height: 1.75; }
+    .mission-avatars { display: flex; align-items: center; gap: 1rem; }
+    .avatar-stack { display: flex; }
+    .avatar-stack span {
+      width: 2rem; height: 2rem;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.65rem;
+      margin-left: -0.5rem;
+      border: 2px solid white;
+    }
+    .avatar-stack span:first-child { margin-left: 0; }
+    .av-dr { background: var(--primary); color: white; }
+    .av-cg { background: var(--accent); color: var(--accent-fg); }
+    .av-pt { background: var(--info-blue); color: var(--info-blue-fg); }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2.5rem; max-width: 48rem; margin-left: auto; margin-right: auto; }
+    .faq-item { border: 1px solid var(--border); border-radius: 1rem; background: var(--card); overflow: hidden; }
+    .faq-q {
+      width: 100%; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      font-weight: 700; font-size: 0.95rem; text-align: left;
+      background: none; border: none; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .faq-q:hover { background: rgba(244,244,247,0.5); }
+    .faq-q svg { width: 1.2rem; height: 1.2rem; flex-shrink: 0; fill: none; stroke: var(--muted-fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.3s; }
+    .faq-q.open svg { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 1.5rem 1.25rem; font-size: 0.875rem; color: var(--muted-fg); line-height: 1.7; border-top: 1px solid rgba(228,228,231,0.4); padding-top: 1rem; }
+    .faq-a.open { display: block; }
+
+    /* ── CONTACT ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 3rem; }
+    @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
+    .contact-info h2 { font-size: 1.75rem; font-weight: 800; margin-bottom: 1rem; }
+    .contact-info p { color: var(--muted-fg); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+    .contact-detail { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--muted-fg); margin-bottom: 0.5rem; }
+    .contact-form { background: var(--card); border: 1px solid var(--border); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 1rem; }
+    .contact-form h3 { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.25rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--muted-fg); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      background: rgba(244,244,247,0.5);
+      font-family: inherit;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+      color: var(--foreground);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .btn-submit {
+      width: 100%; padding: 0.85rem;
+      background: var(--primary); color: white;
+      border: none; border-radius: 0.75rem;
+      font-family: inherit; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(138,125,240,0.3);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { background: var(--primary-dark); box-shadow: 0 4px 16px rgba(138,125,240,0.4); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 72rem;
+      margin: 0 auto;
+      font-size: 0.8rem;
+      color: var(--muted-fg);
+    }
+    footer a { color: var(--muted-fg); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links { display: flex; gap: 1.5rem; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-dot animate-pulse-calm">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <span class="logo-text">RememberMe</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#mission">Our Mission</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/auth/login" class="btn btn-outline">Sign In</a>
+      <a href="/auth/register" class="btn btn-primary">Join Now</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero fade-up">
+    <div>
+      <div class="hero-badge">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Compassionate Memory Care
+      </div>
+      <h1>A peaceful space to <span>remember</span>, connect, and thrive.</h1>
+      <p>Designed with love and medical rigor, RememberMe helps individuals with Alzheimer's retain their memories of family, places, and routines in a comforting, voice-assisted interface.</p>
+      <div class="hero-actions">
+        <a href="/auth/register" class="btn btn-primary btn-lg">Create Account</a>
+        <button onclick="speak('Welcome to RememberMe. We are here to help you remember the moments and the people you love. Everything is safe.')" class="btn btn-outline btn-lg">
+          🔊 Listen to Welcome
+        </button>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <div class="demo-card">
+        <div class="demo-card-bar"></div>
+        <div class="demo-card-header">
+          <div class="demo-avatar">RC</div>
+          <div class="demo-meta">
+            <h3>Robert's Memory Card</h3>
+            <p>Updated by Dr. Emily Carter</p>
+          </div>
+        </div>
+        <div class="demo-person-card">
+          <div class="label">Daughter</div>
+          <div class="name">Sarah Chen</div>
+          <div class="desc">"Sarah is your daughter. She visits every Sunday afternoon. She loves baking apple pies with you."</div>
+        </div>
+        <div class="demo-btns">
+          <button class="demo-btn demo-btn-a" onclick="speak('Sarah is your daughter. She visits every Sunday afternoon.')">🔊 Read Aloud</button>
+          <button class="demo-btn demo-btn-b">Memory Mode 🌸</button>
+        </div>
+        <div class="demo-glow-1"></div>
+        <div class="demo-glow-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="section-inner">
+      <div class="text-center">
+        <h2 class="section-title">Everything needed for compassionate care</h2>
+        <p class="section-sub">RememberMe provides doctors with medical configuration, caregivers with assisting dashboards, and patients with a stress-free environment.</p>
+      </div>
+      <div class="features-grid">
+
+        <!-- Live Location -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+              <h3>Real-Time Live Location</h3>
+              <span class="live-badge"><span class="ping-dot"></span>Live</span>
+            </div>
+            <p>Always-on GPS tracking gives doctors and caregivers instant visibility into a patient's whereabouts. If a patient wanders, their live coordinates update automatically — viewable on Google Maps with one click.</p>
+          </div>
+        </div>
+
+        <!-- Memory Profiles -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <h3>Memory Profiles</h3>
+          <p>Secure cards featuring family photos, descriptions, and narration to trigger comforting recognition of people and places.</p>
+        </div>
+
+        <!-- Routine Timelines -->
+        <div class="feature-card">
+          <div class="feature-icon accent">
+            <svg viewBox="0 0 24 24" style="stroke:var(--accent-fg)"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Routine Timelines</h3>
+          <p>Visual, animated checklists for morning, afternoon, and night routines to simplify daily schedules.</p>
+        </div>
+
+        <!-- AI Assistant -->
+        <div class="feature-card">
+          <div class="feature-icon blue">
+            <svg viewBox="0 0 24 24" style="stroke:var(--info-blue-fg)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>AI Memory Assistant</h3>
+          <p>A patient companion trained to speak in calm, short sentences, answering questions like "Who is Sarah?" using actual profile data.</p>
+        </div>
+
+        <!-- Role-Based Security -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Role-Based Security</h3>
+          <p>Doctors edit profiles and set medication schedules. Caregivers assist, and patients experience a zero-stress, read-only UI.</p>
+        </div>
+
+        <!-- TTS -->
+        <div class="feature-card">
+          <div class="feature-icon accent">
+            <svg viewBox="0 0 24 24" style="stroke:var(--accent-fg)"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </div>
+          <h3>TTS Accessibility</h3>
+          <p>Read aloud details, messages, and schedules at a soothing pace with one-click narration to reduce cognitive overload.</p>
+        </div>
+
+        <!-- SOS -->
+        <div class="feature-card">
+          <div class="feature-icon orange">
+            <svg viewBox="0 0 24 24" style="stroke:var(--warning-fg)"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.49a16 16 0 0 0 6.6 6.6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <h3>One-Click Emergency SOS</h3>
+          <p>Large, high-contrast buttons allowing patients to instantly trigger emergency notifications to their primary caregivers.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION -->
+  <section id="mission" class="mission">
+    <div class="section-inner">
+      <div class="mission-inner">
+        <div class="mission-heart animate-pulse-calm">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </div>
+        <blockquote>"We built this because memories are the threads that bind us to who we love."</blockquote>
+        <p>Alzheimer's presents challenges that require dignity, calm, and clarity. RememberMe was designed alongside neurologists and occupational therapists to eliminate clinical clutter, replace red alarm systems with pastel comfort, and support cognitive anchoring through simple, repetitive confirmation.</p>
+        <div class="mission-avatars">
+          <div class="avatar-stack">
+            <span class="av-dr">Dr</span>
+            <span class="av-cg">Cg</span>
+            <span class="av-pt">Pt</span>
+          </div>
+          <span style="font-size:0.875rem;font-weight:600;color:var(--muted-fg);">Empowering 100+ families during early-to-mid stages.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="section-inner">
+      <div class="text-center">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            How does the platform help Alzheimer's patients?
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-a">RememberMe is designed from the ground up for low cognitive load. It features extremely large buttons, clean typography, soft soothing colors, and text-to-speech voice narration. This reduces anxiety and helps patients independently review who their family members are, what medications to take, and daily routine steps.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Can patients accidentally edit or delete their medical data?
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-a">No. The system uses strict role-based access controls. Only the assigned primary doctor (and caregivers with explicit permission) can modify patient memory files, medication guidelines, or details. The patient dashboard is strictly read-only and interaction-focused.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Does the AI assistant share patient data?
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-a">Patient privacy is our priority. The AI assistant constructs its knowledge base strictly from the private PostgreSQL database entries created by the doctor. No data is stored or shared externally outside of secure contextual API calls.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            How does the 'Memory Mode' work?
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-a">Memory Mode is a full-screen focus feature. When a patient clicks on a person or place, the app dims the background, plays a gentle animation, and speaks the name, relationship, and a positive reassuring memory aloud using a calming voice narration.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            How does real-time live location tracking work?
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="faq-a">When a patient logs into their dashboard, the browser requests location permission. Once granted, the app uses the Geolocation API to continuously track their position and send coordinates to the server every few seconds. Caregivers and doctors see these live coordinates with a Google Maps link, updated every 10 seconds on their dashboards.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-inner">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h2>Connect with our support team</h2>
+          <p>Have questions about HIPAA compliance, custom institutional deployments, or feedback? Send us a message and our compassionate clinical success team will reach out.</p>
+          <div class="contact-detail">📞 24/7 Helpline: +91 9380842043</div>
+          <div class="contact-detail">✉️ Support: gowdadilip11942@gmail.com</div>
+        </div>
+        <form class="contact-form" onsubmit="submitForm(event)">
+          <h3>Send an inquiry</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input name="name" type="text" placeholder="Your name" required />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input name="email" type="email" placeholder="name@domain.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select name="role">
+              <option>Caregiver / Family Member</option>
+              <option>Clinical Doctor / Specialist</option>
+              <option>Care Institution Administrator</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea name="message" placeholder="How can we assist you?" required></textarea>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">Submit Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© <span id="yr"></span> RememberMe Inc. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">HIPAA Statement</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    function toggleFaq(btn) {
+      const allBtns = document.querySelectorAll('.faq-q');
+      const allAnswers = document.querySelectorAll('.faq-a');
+      const answer = btn.nextElementSibling;
+      const isOpen = answer.classList.contains('open');
+      allBtns.forEach(b => b.classList.remove('open'));
+      allAnswers.forEach(a => a.classList.remove('open'));
+      if (!isOpen) {
+        btn.classList.add('open');
+        answer.classList.add('open');
+      }
+    }
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 0.88;
+        utter.pitch = 1;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    async function submitForm(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        const res = await fetch('https://formsubmit.co/ajax/gowdadilip11942@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            name: form.name.value,
+            email: form.email.value,
+            role: form.role.value,
+            message: form.message.value,
+            _subject: 'New RememberMe Inquiry',
+            _template: 'table'
+          })
+        });
+        if (res.ok) {
+          alert('✅ Message sent! We\'ll reach out to you shortly.');
+          form.reset();
+        } else {
+          alert('❌ Failed to send. Please email us at gowdadilip11942@gmail.com');
+        }
+      } catch {
+        alert('❌ Network error. Please email us directly.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Message';
+      }
+    }
+  </script>
+</body>
+</html>
