@@ -337,7 +337,7 @@ export default function PatientDashboard() {
   return (
     <div className="flex flex-col min-h-screen text-foreground pb-20">
       {/* Top Accessible Navbar */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border px-6 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <header className="sticky top-0 z-40 glass-card border-b border-border px-4 sm:px-6 py-3 sm:py-5 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
@@ -347,11 +347,11 @@ export default function PatientDashboard() {
         </div>
 
         {/* Big Accessibility Controls */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* TTS Toggler */}
           <button
             onClick={() => setSpeechEnabled(!speechEnabled)}
-            className={`px-5 py-3 rounded-full font-extrabold text-sm flex items-center gap-2 border shadow-sm transition-all ${
+            className={`px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm rounded-full font-extrabold flex items-center gap-2 border shadow-sm transition-all ${
               speechEnabled 
                 ? "bg-accent/20 border-accent text-accent-foreground" 
                 : "bg-muted border-border text-muted-foreground hover:bg-card"
@@ -387,18 +387,18 @@ export default function PatientDashboard() {
 
           <button
             onClick={logout}
-            className="px-5 py-3 rounded-full bg-warning-orange/20 text-warning-orange-foreground border border-warning-orange/30 font-bold text-sm flex items-center gap-2 hover:bg-warning-orange/40 transition"
+            className="px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm rounded-full bg-warning-orange/20 text-warning-orange-foreground border border-warning-orange/30 font-bold flex items-center gap-2 hover:bg-warning-orange/40 transition"
           >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 mt-8 flex flex-col gap-10">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 flex flex-col gap-6 sm:gap-10">
         {/* Calming Greeting banner */}
-        <div className="p-6 rounded-[2rem] bg-gradient-to-r from-secondary/40 via-info-blue/20 to-accent/20 border border-primary/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
+        <div className="p-4 sm:p-6 rounded-[2rem] bg-gradient-to-r from-secondary/40 via-info-blue/20 to-accent/20 border border-primary/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
               Hello, {patientData?.name || "Robert"}
             </h1>
             <p className="text-muted-foreground font-semibold">
@@ -418,7 +418,7 @@ export default function PatientDashboard() {
           {!sosTriggered ? (
             <button
               onClick={handleTriggerSOS}
-              className="w-full py-6 bg-warning-orange/40 border-2 border-warning-orange text-warning-orange-foreground hover:bg-warning-orange/50 active:scale-[0.99] transition duration-150 rounded-[2rem] font-extrabold text-2xl md:text-3xl shadow-md flex items-center justify-center gap-4 animate-calm-pulse"
+              className="w-full py-5 sm:py-6 bg-warning-orange/40 border-2 border-warning-orange text-warning-orange-foreground hover:bg-warning-orange/50 active:scale-[0.99] transition duration-150 rounded-[2rem] font-extrabold text-xl sm:text-2xl md:text-3xl shadow-md flex items-center justify-center gap-4 animate-calm-pulse"
             >
               <PhoneCall className="w-8 h-8" /> EMERGENCY SOS — Click to Call for Help
             </button>
@@ -621,7 +621,7 @@ export default function PatientDashboard() {
             </div>
 
             {/* AI Assistant Chat Widget */}
-            <div className="p-6 rounded-[2rem] bg-gradient-to-tr from-primary/10 via-card to-secondary/15 border border-primary/20 shadow-sm flex flex-col gap-4">
+            <div className="p-4 sm:p-6 rounded-[2rem] bg-gradient-to-tr from-primary/10 via-card to-secondary/15 border border-primary/20 shadow-sm flex flex-col gap-4">
               <div className="flex items-center gap-2 text-primary">
                 <MessageCircle className="w-6 h-6" />
                 <h3 className="font-extrabold text-lg">My Calm Memory Helper</h3>
@@ -631,7 +631,7 @@ export default function PatientDashboard() {
                 {aiResponse}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={aiMessage}

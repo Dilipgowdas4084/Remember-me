@@ -163,7 +163,7 @@ export default function CaregiverDashboard() {
   return (
     <div className="flex flex-col min-h-screen text-foreground pb-12">
       {/* Top Header */}
-      <header className="px-8 py-5 border-b border-border bg-card flex justify-between items-center shadow-sm">
+      <header className="px-4 sm:px-8 py-3 sm:py-5 border-b border-border bg-card flex justify-between items-center gap-2 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <Heart className="w-4.5 h-4.5 text-white" />
@@ -171,12 +171,12 @@ export default function CaregiverDashboard() {
           <span className="font-bold text-md tracking-tight">RememberMe</span>
           <span className="text-[10px] uppercase font-bold text-accent-foreground px-2.5 py-1 rounded-full bg-accent/20">Caregiver</span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="text-right hidden sm:block">
             <h4 className="font-bold text-sm">{caregiver?.name || "Caregiver Partner"}</h4>
             <p className="text-xs text-muted-foreground">{caregiver?.relationshipToPatient || "Family Representative"}</p>
           </div>
-          <button onClick={logout} className="px-4 py-2 border border-border hover:bg-muted text-xs font-bold rounded-xl transition">
+          <button onClick={logout} className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs border border-border hover:bg-muted font-bold rounded-xl transition">
             Sign Out
           </button>
         </div>
@@ -192,11 +192,11 @@ export default function CaregiverDashboard() {
           </p>
         </div>
       ) : (
-        <main className="max-w-6xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <main className="max-w-6xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8 pb-8">
           
           {/* LEFT: PATIENT BIO CARD & QUICK METRICS */}
           <div className="flex flex-col gap-6 lg:col-span-1">
-            <div className="p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
+            <div className="p-4 sm:p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned Patient Profile</h3>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center font-bold text-lg">
@@ -282,7 +282,7 @@ export default function CaregiverDashboard() {
           <div className="lg:col-span-2 flex flex-col gap-8">
             
             {/* Medication & Allergies */}
-            <div className="p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
+            <div className="p-4 sm:p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
               <h3 className="font-bold text-md tracking-tight">Active Medications & Alerts</h3>
               
               {allergies.length > 0 && (
@@ -298,7 +298,7 @@ export default function CaregiverDashboard() {
 
               <div className="flex flex-col gap-3">
                 {meds.map((m) => (
-                  <div key={m.id} className="p-3.5 border border-border rounded-xl flex items-center justify-between text-xs">
+                  <div key={m.id} className="p-3 border border-border rounded-xl flex items-start sm:items-center justify-between text-xs gap-2">
                     <div>
                       <h4 className="font-bold">{m.name} ({m.dosage})</h4>
                       <p className="text-muted-foreground mt-0.5">Instructions: {m.instructions || "Take with meals"}</p>
@@ -310,7 +310,7 @@ export default function CaregiverDashboard() {
             </div>
 
             {/* Memory Journal / Story Logs */}
-            <div className="p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
+            <div className="p-4 sm:p-6 bg-card border border-border rounded-3xl shadow-sm flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-md tracking-tight flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> Memory Journal Stories</h3>
                 <button onClick={() => setIsAddJournalOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
@@ -353,7 +353,7 @@ export default function CaregiverDashboard() {
             
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-muted-foreground">Story Title</label>
-              <input required type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Robert at Green Lake" />
+              <input required type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="w-full p-2.5 rounded-xl border border-border text-sm" placeholder="Robert at Green Lake" />
             </div>
 
             <div className="flex flex-col gap-1.5">

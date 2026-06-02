@@ -17,7 +17,9 @@ import {
   Loader2,
   Heart,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from "lucide-react";
 
 interface Patient {
@@ -332,9 +334,9 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen text-foreground">
+    <div className="flex flex-col md:flex-row min-h-screen text-foreground">
       {/* LEFT COLUMN: PATIENTS LIST */}
-      <aside className="w-80 shrink-0 border-r border-border bg-card flex flex-col">
+      <aside className="w-full md:w-72 lg:w-80 shrink-0 border-b md:border-b-0 md:border-r border-border bg-card flex flex-col md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
@@ -390,28 +392,28 @@ export default function DoctorDashboard() {
       {/* RIGHT COLUMN: CORE DASHBOARD / DETAILS EDITOR */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Doctor Profile Bar */}
-        <header className="px-8 py-5 border-b border-border bg-card flex justify-between items-center">
-          <div>
-            <h2 className="font-bold text-lg">Clinical Control Center</h2>
-            <p className="text-xs text-muted-foreground">Logged in as {user?.email} (Doctor)</p>
+        <header className="px-4 sm:px-8 py-4 sm:py-5 border-b border-border bg-card flex flex-wrap justify-between items-center gap-3 sticky top-0 z-30">
+          <div className="min-w-0">
+            <h2 className="font-bold text-base sm:text-lg truncate">Clinical Control Center</h2>
+            <p className="text-xs text-muted-foreground hidden sm:block">Logged in as {user?.email}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold">{user?.profile?.name || "Dr. Emily Carter"}</span>
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-              <Users className="w-5 h-5 text-secondary-foreground" />
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <span className="text-sm font-semibold hidden sm:block">{user?.profile?.name || "Dr."}</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-foreground" />
             </div>
-            <button onClick={logout} className="px-4 py-2 border border-border hover:bg-muted text-xs font-bold rounded-xl transition">
+            <button onClick={logout} className="px-3 sm:px-4 py-1.5 sm:py-2 border border-border hover:bg-muted text-xs font-bold rounded-xl transition whitespace-nowrap">
               Sign Out
             </button>
           </div>
         </header>
 
         {/* Dashboard Area */}
-        <div className="flex-1 overflow-y-auto p-8 max-w-5xl">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-5xl w-full">
           {!selectedPatient ? (
             /* Stats display if no patient selected */
             <div className="flex flex-col gap-8">
-              <div className="p-8 rounded-[2rem] bg-gradient-to-r from-secondary/30 to-background border border-primary/10 flex items-center gap-6">
+              <div className="p-5 sm:p-8 rounded-[2rem] bg-gradient-to-r from-secondary/30 to-background border border-primary/10 flex items-center gap-4 sm:gap-6">
                 <Sparkles className="w-10 h-10 text-primary animate-calm-pulse" />
                 <div>
                   <h3 className="text-2xl font-extrabold mb-1">Clinical Overview</h3>
@@ -449,7 +451,7 @@ export default function DoctorDashboard() {
             /* Selected Patient Detailed Editor Board */
             <div className="flex flex-col gap-6">
               {/* Header Info */}
-              <div className="flex justify-between items-start gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-2xl text-primary uppercase shrink-0 border border-primary/10">
                     {selectedPatient.name.substring(0, 2)}
@@ -497,13 +499,13 @@ export default function DoctorDashboard() {
               </div>
 
               {/* TAB CONTENT PANELS */}
-              <div className="mt-4 bg-card border border-border p-6 rounded-3xl min-h-[300px]">
+              <div className="mt-4 bg-card border border-border p-4 sm:p-6 rounded-3xl min-h-[300px]">
                 
                 {/* PROFILE TAB */}
                 {activeTab === "profile" && (
                   <div className="flex flex-col gap-4 text-sm">
                     <h3 className="font-bold text-lg border-b pb-2 mb-2">Patient Profile Information</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <span className="text-xs font-bold text-muted-foreground block uppercase">Email Account</span>
                         <span className="font-semibold text-md">{selectedPatient.user.email}</span>
@@ -757,7 +759,7 @@ export default function DoctorDashboard() {
                       <div className="flex flex-col gap-4">
                         {journals.map((j) => (
                           <div key={j.id} className="p-5 border border-border rounded-2xl flex flex-col gap-3 shadow-sm">
-                            <div className="flex justify-between items-start gap-4">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                               <div>
                                 <h4 className="font-extrabold text-sm">{j.title}</h4>
                                 <span className="text-[10px] text-muted-foreground font-semibold">{new Date(j.createdAt).toLocaleDateString()}</span>
@@ -795,9 +797,7 @@ export default function DoctorDashboard() {
             
             {feedbackMsg && <div className="p-3 bg-warning-orange/20 text-warning-orange-foreground rounded-xl text-xs">{feedbackMsg}</div>}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Full Name</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input required type="text" value={regName} onChange={(e) => setRegName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Robert Chen" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -806,9 +806,7 @@ export default function DoctorDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Password</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input required type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="••••••••" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -822,9 +820,7 @@ export default function DoctorDashboard() {
               <input type="text" value={regAddress} onChange={(e) => setRegAddress(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="123 Lavender Lane, Seattle" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Blood Group</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input type="text" value={regBlood} onChange={(e) => setRegBlood(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="AB+" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -939,9 +935,7 @@ export default function DoctorDashboard() {
           <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
             <h3 className="font-bold text-lg">Add Allergy Warning</h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Type</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <select value={formType} onChange={(e) => setFormType(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm">
                   <option>FOOD</option>
                   <option>MEDICINE</option>
@@ -983,9 +977,7 @@ export default function DoctorDashboard() {
           <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
             <h3 className="font-bold text-lg">Schedule Medication</h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Medicine Name</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Donepezil" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -994,9 +986,7 @@ export default function DoctorDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Frequency</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input type="text" value={formFreq} onChange={(e) => setFormFreq(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Once daily" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -1009,9 +999,7 @@ export default function DoctorDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Reminder Time (HH:MM)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input type="text" value={formTimeHour} onChange={(e) => setFormTimeHour(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="08:00" />
               </div>
               <div className="flex flex-col gap-1.5">
