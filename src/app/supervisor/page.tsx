@@ -36,7 +36,7 @@ interface Patient {
   longitude: number | null;
   locationUpdatedAt: string | null;
   user: { email: string; createdAt: string };
-  doctor: { name: string; specialization: string };
+  doctor: { name: string; specialization: string; phone?: string };
   caregivers: { caregiver: { name: string; phone: string } }[];
   medications: { name: string; dosage: string; timeOfDay: string }[];
   reminders: { title: string; dateTime: string }[];
