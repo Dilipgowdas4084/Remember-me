@@ -334,259 +334,247 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen text-foreground">
-      {/* LEFT COLUMN: PATIENTS LIST */}
-      <aside className="w-full md:w-72 lg:w-80 shrink-0 border-b md:border-b-0 md:border-r border-border bg-card flex flex-col md:h-screen md:sticky md:top-0 md:overflow-y-auto">
-        <div className="p-6 border-b border-border flex items-center justify-between">
+    <div className="flex flex-col md:flex-row min-h-screen text-foreground bg-background">
+      {/* ── DESKTOP SIDEBAR ── (hidden on mobile, shown md+) */}
+      <aside className="hidden md:flex w-72 lg:w-80 shrink-0 border-r border-border bg-card flex-col h-screen sticky top-0 overflow-y-auto">
+        <div className="p-5 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <Heart className="w-4.5 h-4.5 text-white" />
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md">
+              <Heart className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-md tracking-tight">RememberMe</span>
+            <span className="font-bold tracking-tight">RememberMe</span>
           </div>
-          <span className="text-[10px] uppercase font-bold text-primary px-2.5 py-1 rounded-full bg-secondary/80">Clinician</span>
+          <span className="text-[10px] uppercase font-black text-primary px-2 py-1 rounded-full bg-primary/10">Clinician</span>
         </div>
-
-        {/* Action Button: Register New Patient */}
         <div className="p-4 border-b border-border">
-          <button
-            onClick={() => { setIsRegisterOpen(true); setFeedbackMsg(""); }}
-            className="w-full py-2.5 bg-primary text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 hover:shadow-md transition"
-          >
+          <button onClick={() => { setIsRegisterOpen(true); setFeedbackMsg(""); }}
+            className="w-full py-2.5 bg-primary text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 hover:shadow-md transition">
             <Plus className="w-4 h-4" /> Add New Patient
           </button>
         </div>
-
-        {/* Patients Selector Menu */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
-          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2">Assigned Patients</h3>
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1">
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-2 px-2">Patients ({patients.length})</p>
           {patients.length === 0 ? (
-            <div className="p-4 border border-dashed border-border rounded-xl text-center text-xs text-muted-foreground">
-              No patients assigned yet. Click "Add New Patient" to register one under your care.
-            </div>
-          ) : (
-            patients.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setSelectedPatient(p)}
-                className={`w-full p-3.5 rounded-xl text-left flex items-center gap-3 transition cursor-pointer ${
-                  selectedPatient?.id === p.id 
-                    ? "bg-secondary/40 border border-primary/20 text-foreground" 
-                    : "hover:bg-muted border border-transparent text-muted-foreground"
-                }`}
-              >
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-sm text-primary uppercase shrink-0">
-                  {p.name.substring(0, 2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-sm truncate">{p.name}</h4>
-                  <p className="text-xs text-muted-foreground truncate">{p.user.email}</p>
-                </div>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            ))
-          )}
+            <div className="p-4 border border-dashed border-border rounded-xl text-center text-xs text-muted-foreground">No patients yet</div>
+          ) : patients.map((p) => (
+            <button key={p.id} onClick={() => setSelectedPatient(p)}
+              className={`w-full p-3 rounded-xl text-left flex items-center gap-3 transition ${
+                selectedPatient?.id === p.id ? "bg-primary/10 border border-primary/30 text-foreground" : "hover:bg-muted border border-transparent text-muted-foreground"
+              }`}>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center font-black text-sm text-primary uppercase shrink-0">
+                {p.name.substring(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-sm truncate">{p.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{p.user.email}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 shrink-0" />
+            </button>
+          ))}
+        </div>
+        <div className="p-4 border-t border-border">
+          <button onClick={logout} className="w-full py-2.5 rounded-xl border border-border text-xs font-bold hover:bg-muted transition text-muted-foreground">Sign Out</button>
         </div>
       </aside>
 
-      {/* RIGHT COLUMN: CORE DASHBOARD / DETAILS EDITOR */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Top Doctor Profile Bar */}
-        <header className="px-4 sm:px-8 py-4 sm:py-5 border-b border-border bg-card flex flex-wrap justify-between items-center gap-3 sticky top-0 z-30">
-          <div className="min-w-0">
-            <h2 className="font-bold text-base sm:text-lg truncate">Clinical Control Center</h2>
-            <p className="text-xs text-muted-foreground hidden sm:block">Logged in as {user?.email}</p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <span className="text-sm font-semibold hidden sm:block">{user?.profile?.name || "Dr."}</span>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-foreground" />
+      {/* ── MAIN CONTENT ── */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+
+        {/* ── TOP HEADER ── */}
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Mobile logo */}
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-md md:hidden shrink-0">
+              <Heart className="w-4 h-4 text-white" />
             </div>
-            <button onClick={logout} className="px-3 sm:px-4 py-1.5 sm:py-2 border border-border hover:bg-muted text-xs font-bold rounded-xl transition whitespace-nowrap">
-              Sign Out
-            </button>
+            <div className="min-w-0">
+              <p className="font-extrabold text-sm leading-tight">Clinical Dashboard</p>
+              <p className="text-[10px] text-muted-foreground truncate hidden sm:block">{user?.email}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-primary" />
+            </div>
+            <button onClick={logout} className="md:hidden px-3 py-1.5 rounded-xl border border-border text-xs font-bold hover:bg-muted transition">Out</button>
+            <button onClick={logout} className="hidden md:block px-4 py-2 rounded-xl border border-border text-xs font-bold hover:bg-muted transition">Sign Out</button>
           </div>
         </header>
 
-        {/* Dashboard Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-5xl w-full">
-          {!selectedPatient ? (
-            /* Stats display if no patient selected */
-            <div className="flex flex-col gap-8">
-              <div className="p-5 sm:p-8 rounded-[2rem] bg-gradient-to-r from-secondary/30 to-background border border-primary/10 flex items-center gap-4 sm:gap-6">
-                <Sparkles className="w-10 h-10 text-primary animate-calm-pulse" />
-                <div>
-                  <h3 className="text-2xl font-extrabold mb-1">Clinical Overview</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Register and manage the memory records of patients. You have full edit control over their medication, timelines, family connections, and safety parameters.
-                  </p>
-                </div>
-              </div>
+        {/* ── MOBILE: Patient Picker ── */}
+        <div className="md:hidden px-4 py-3 border-b border-border bg-card flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">Selected Patient</p>
+            <select
+              value={selectedPatient?.id || ""}
+              onChange={(e) => {
+                const p = patients.find(pt => pt.id === e.target.value);
+                if (p) setSelectedPatient(p);
+              }}
+              className="w-full text-sm font-bold bg-background border border-border rounded-xl px-3 py-2 focus:outline-none focus:border-primary appearance-none"
+            >
+              {patients.length === 0 && <option value="">No patients</option>}
+              {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <button onClick={() => { setIsRegisterOpen(true); setFeedbackMsg(""); }}
+            className="shrink-0 w-11 h-11 mt-4 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 active:bg-primary/90 transition">
+            <Plus className="w-5 h-5 text-white" />
+          </button>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-3xl bg-card border border-border flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
-                  <div>
-                    <div className="text-3xl font-extrabold">{patients.length}</div>
-                    <div className="text-xs text-muted-foreground font-bold">Total Patients Assigned</div>
-                  </div>
+        {/* ── CONTENT AREA ── */}
+        <main className="flex-1 overflow-y-auto px-4 py-4 pb-24 md:pb-8 max-w-4xl w-full mx-auto">
+          {!selectedPatient ? (
+            <div className="flex flex-col gap-5 mt-2">
+              {/* Welcome Banner */}
+              <div className="p-5 rounded-3xl bg-gradient-to-br from-primary/10 via-background to-secondary/20 border border-primary/15 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-6 h-6 text-primary" />
                 </div>
-                <div className="p-6 rounded-3xl bg-card border border-border flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center"><Pill className="w-6 h-6 text-accent-foreground" /></div>
-                  <div>
-                    <div className="text-3xl font-extrabold">Active</div>
-                    <div className="text-xs text-muted-foreground font-bold">Medication Schedules</div>
-                  </div>
-                </div>
-                <div className="p-6 rounded-3xl bg-card border border-border flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-warning-orange/15 flex items-center justify-center"><AlertTriangle className="w-6 h-6 text-warning-orange-foreground" /></div>
-                  <div>
-                    <div className="text-3xl font-extrabold">Ready</div>
-                    <div className="text-xs text-muted-foreground font-bold">SOS Emergency Triggers</div>
-                  </div>
+                <div>
+                  <h2 className="font-extrabold text-lg leading-tight">Welcome, Dr. {user?.profile?.name || "Doctor"}</h2>
+                  <p className="text-muted-foreground text-xs mt-0.5">Manage patient memory records, medications, and more.</p>
                 </div>
               </div>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Patients", val: patients.length, icon: <Users className="w-5 h-5 text-primary" />, bg: "bg-primary/10" },
+                  { label: "Active Meds", val: "✓", icon: <Pill className="w-5 h-5 text-orange-500" />, bg: "bg-orange-50" },
+                  { label: "SOS Ready", val: "✓", icon: <AlertTriangle className="w-5 h-5 text-red-500" />, bg: "bg-red-50" },
+                ].map((s, i) => (
+                  <div key={i} className="bg-card border border-border rounded-2xl p-3 sm:p-4 flex flex-col gap-2">
+                    <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center`}>{s.icon}</div>
+                    <p className="text-xl sm:text-2xl font-black">{s.val}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold leading-tight">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Patient list cards on mobile when no selection */}
+              {patients.length > 0 && (
+                <div>
+                  <p className="text-xs font-black text-muted-foreground uppercase tracking-wider mb-3">Your Patients</p>
+                  <div className="flex flex-col gap-2">
+                    {patients.map(p => (
+                      <button key={p.id} onClick={() => setSelectedPatient(p)}
+                        className="w-full flex items-center gap-3 bg-card border border-border rounded-2xl p-4 active:bg-muted transition text-left">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-black text-white text-base shrink-0">
+                          {p.name.substring(0, 2)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm">{p.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{p.user.email}</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            /* Selected Patient Detailed Editor Board */
-            <div className="flex flex-col gap-6">
-              {/* Header Info */}
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-2xl text-primary uppercase shrink-0 border border-primary/10">
-                    {selectedPatient.name.substring(0, 2)}
+            <div className="flex flex-col gap-4">
+              {/* Patient Hero Card */}
+              <div className="bg-gradient-to-br from-primary/10 to-background border border-primary/15 rounded-3xl p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-primary/20 shrink-0">
+                      {selectedPatient.name.substring(0, 2)}
+                    </div>
+                    <div>
+                      <h2 className="font-extrabold text-xl leading-tight">{selectedPatient.name}</h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">Age {selectedPatient.age} · {selectedPatient.bloodGroup || "N/A"}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{selectedPatient.user.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-3xl font-extrabold tracking-tight">{selectedPatient.name}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Age: {selectedPatient.age} | Blood Group: {selectedPatient.bloodGroup || "Not Specified"}
-                    </p>
-                  </div>
+                  <button onClick={() => handleDeletePatient(selectedPatient.id)}
+                    className="px-3 py-1.5 text-xs font-bold text-red-500 border border-red-200 rounded-xl hover:bg-red-50 transition">
+                    Delete
+                  </button>
                 </div>
-                
-                <button
-                  onClick={() => handleDeletePatient(selectedPatient.id)}
-                  className="px-4 py-2 text-xs font-bold text-warning-orange-foreground border border-warning-orange/20 rounded-xl hover:bg-warning-orange/10 transition"
-                >
-                  Delete Patient Profile
-                </button>
               </div>
 
-              {/* Tabs list */}
-              <div className="flex border-b border-border gap-2 mt-4 overflow-x-auto pb-px">
+              {/* Tab Pills (horizontal scrollable) */}
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
                 {[
-                  { id: "profile", label: "Personal Info", icon: <User className="w-4 h-4" /> },
-                  { id: "people", label: "Known People", icon: <Brain className="w-4 h-4" /> },
-                  { id: "places", label: "Places", icon: <MapPin className="w-4 h-4" /> },
-                  { id: "allergies", label: "Allergies", icon: <AlertTriangle className="w-4 h-4" /> },
-                  { id: "meds", label: "Medication", icon: <Pill className="w-4 h-4" /> },
-                  { id: "reminders", label: "Routine Timeline", icon: <Activity className="w-4 h-4" /> },
-                  { id: "journals", label: "Memory Journal", icon: <FileText className="w-4 h-4" /> },
+                  { id: "profile", label: "Profile", icon: <User className="w-3.5 h-3.5" /> },
+                  { id: "people", label: "People", icon: <Brain className="w-3.5 h-3.5" /> },
+                  { id: "places", label: "Places", icon: <MapPin className="w-3.5 h-3.5" /> },
+                  { id: "allergies", label: "Allergies", icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+                  { id: "meds", label: "Meds", icon: <Pill className="w-3.5 h-3.5" /> },
+                  { id: "reminders", label: "Routines", icon: <Activity className="w-3.5 h-3.5" /> },
+                  { id: "journals", label: "Journal", icon: <FileText className="w-3.5 h-3.5" /> },
                 ].map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setActiveTab(t.id as any)}
-                    className={`px-4 py-2.5 font-bold text-sm border-b-2 flex items-center gap-2 transition cursor-pointer shrink-0 ${
-                      activeTab === t.id 
-                        ? "border-primary text-primary" 
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t.icon}
-                    {t.label}
+                  <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black whitespace-nowrap transition shrink-0 ${
+                      activeTab === t.id ? "bg-primary text-white shadow-lg shadow-primary/25" : "bg-card border border-border text-muted-foreground hover:border-primary/50"
+                    }`}>
+                    {t.icon} {t.label}
                   </button>
                 ))}
               </div>
 
-              {/* TAB CONTENT PANELS */}
-              <div className="mt-4 bg-card border border-border p-4 sm:p-6 rounded-3xl min-h-[300px]">
-                
-                {/* PROFILE TAB */}
+              {/* Tab Content */}
+              <div className="bg-card border border-border rounded-3xl p-4 sm:p-5 min-h-[300px]">
+
+                {/* PROFILE */}
                 {activeTab === "profile" && (
-                  <div className="flex flex-col gap-4 text-sm">
-                    <h3 className="font-bold text-lg border-b pb-2 mb-2">Patient Profile Information</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs font-bold text-muted-foreground block uppercase">Email Account</span>
-                        <span className="font-semibold text-md">{selectedPatient.user.email}</span>
+                  <div className="flex flex-col gap-4">
+                    <h3 className="font-bold text-base border-b border-border pb-2">Patient Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { label: "Email", val: selectedPatient.user.email },
+                        { label: "Address", val: selectedPatient.address || "None listed" },
+                        { label: "Emergency Contact", val: selectedPatient.emergencyContact || "None listed" },
+                        { label: "Blood Group", val: selectedPatient.bloodGroup || "Not specified" },
+                      ].map((row, i) => (
+                        <div key={i} className="bg-muted/50 rounded-2xl p-3">
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">{row.label}</p>
+                          <p className="font-semibold text-sm break-words">{row.val}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Live Location */}
+                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                        <span className="text-xs font-black text-primary uppercase tracking-wider">Live Location</span>
                       </div>
-                      <div>
-                        <span className="text-xs font-bold text-muted-foreground block uppercase">Home Address</span>
-                        <span className="font-semibold text-md">{selectedPatient.address || "None listed"}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-muted-foreground block uppercase">Emergency Contacts</span>
-                        <span className="font-semibold text-md">{selectedPatient.emergencyContact || "None listed"}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-muted-foreground block uppercase">Blood Group</span>
-                        <span className="font-semibold text-md">{selectedPatient.bloodGroup || "Not specified"}</span>
-                      </div>
-
-                      {/* Live Location Panel */}
-                      <div className="col-span-2 mt-4 p-5 rounded-2xl bg-primary/5 border border-primary/20">
-                        <span className="text-xs font-bold text-primary block uppercase mb-1.5 flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
-                          🔴 Live Location (Always On)
-                        </span>
-                        {selectedPatient.latitude && selectedPatient.longitude ? (
-                          <div className="flex flex-col gap-2">
-                            <span className="font-extrabold text-md text-foreground">
-                              Coordinates: {selectedPatient.latitude.toFixed(6)}, {selectedPatient.longitude.toFixed(6)}
-                            </span>
-                            {selectedPatient.locationUpdatedAt && (
-                              <span className="text-xs text-muted-foreground">
-                                Last updated: {new Date(selectedPatient.locationUpdatedAt).toLocaleString()}
-                              </span>
-                            )}
-                            <a
-                              href={`https://www.google.com/maps?q=${selectedPatient.latitude},${selectedPatient.longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-white bg-primary px-4 py-2.5 rounded-xl hover:shadow-sm w-fit transition"
-                            >
-                              📍 View on Google Maps
-                            </a>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground font-semibold">
-                            No location data received yet. The patient's device will update this automatically once they log in.
-                          </span>
-                        )}
-                      </div>
+                      {selectedPatient.latitude ? (
+                        <div className="flex flex-col gap-2">
+                          <p className="font-bold text-sm font-mono">{selectedPatient.latitude.toFixed(5)}, {selectedPatient.longitude?.toFixed(5)}</p>
+                          {selectedPatient.locationUpdatedAt && <p className="text-xs text-muted-foreground">Updated: {new Date(selectedPatient.locationUpdatedAt).toLocaleString()}</p>}
+                          <a href={`https://www.google.com/maps?q=${selectedPatient.latitude},${selectedPatient.longitude}`} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-primary px-4 py-2.5 rounded-xl w-fit">
+                            📍 Open Google Maps
+                          </a>
+                        </div>
+                      ) : <p className="text-xs text-muted-foreground">No location yet. Patient device will share when they log in.</p>}
                     </div>
                   </div>
                 )}
 
-                {/* PEOPLE TAB */}
+                {/* PEOPLE */}
                 {activeTab === "people" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Known People List</h3>
-                      <button onClick={() => setIsAddPeopleOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Person
-                      </button>
+                      <h3 className="font-bold text-base">Known People</h3>
+                      <button onClick={() => setIsAddPeopleOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {people.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No family members or friends listed. Click Add Person to register one.</p>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {people.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No people listed yet.</p> : (
+                      <div className="flex flex-col gap-2">
                         {people.map((p) => (
-                          <div key={p.id} className="p-4 border border-border rounded-2xl flex gap-3 justify-between items-start">
-                            <div className="flex gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
-                                {p.photoUrl && <img src={p.photoUrl} className="w-full h-full object-cover" />}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-sm">{p.name} <span className="text-xs text-muted-foreground">({p.relationship})</span></h4>
-                                <p className="text-xs text-muted-foreground leading-relaxed mt-1">{p.description}</p>
-                                {p.positiveMemory && <p className="text-xs text-accent-foreground font-semibold mt-1">🌸 {p.positiveMemory}</p>}
-                              </div>
+                          <div key={p.id} className="flex items-start gap-3 p-4 border border-border rounded-2xl">
+                            <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              {p.photoUrl ? <img src={p.photoUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold text-muted-foreground">{p.name[0]}</div>}
                             </div>
-                            <button onClick={() => handleDeleteSubresource("people", "personId", p.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm">{p.name} <span className="text-xs text-muted-foreground font-normal">({p.relationship})</span></p>
+                              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">{p.description}</p>
+                              {p.positiveMemory && <p className="text-xs text-primary font-semibold mt-1">🌸 {p.positiveMemory}</p>}
+                            </div>
+                            <button onClick={() => handleDeleteSubresource("people", "personId", p.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl shrink-0"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>
@@ -594,35 +582,26 @@ export default function DoctorDashboard() {
                   </div>
                 )}
 
-                {/* PLACES TAB */}
+                {/* PLACES */}
                 {activeTab === "places" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Visited Places</h3>
-                      <button onClick={() => setIsAddPlaceOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Place
-                      </button>
+                      <h3 className="font-bold text-base">Visited Places</h3>
+                      <button onClick={() => setIsAddPlaceOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {places.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No places listed. Click Add Place to register.</p>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {places.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No places listed yet.</p> : (
+                      <div className="flex flex-col gap-2">
                         {places.map((pl) => (
-                          <div key={pl.id} className="p-4 border border-border rounded-2xl flex gap-3 justify-between items-start">
-                            <div className="flex gap-3">
-                              <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
-                                {pl.photoUrl && <img src={pl.photoUrl} className="w-full h-full object-cover" />}
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-sm">{pl.name}</h4>
-                                {pl.address && <p className="text-xs font-semibold text-muted-foreground mt-0.5">📍 {pl.address}</p>}
-                                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pl.description}</p>
-                              </div>
+                          <div key={pl.id} className="flex items-start gap-3 p-4 border border-border rounded-2xl">
+                            <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              {pl.photoUrl ? <img src={pl.photoUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold text-muted-foreground">{pl.name[0]}</div>}
                             </div>
-                            <button onClick={() => handleDeleteSubresource("places", "placeId", pl.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm">{pl.name}</p>
+                              {pl.address && <p className="text-xs text-muted-foreground">📍 {pl.address}</p>}
+                              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">{pl.description}</p>
+                            </div>
+                            <button onClick={() => handleDeleteSubresource("places", "placeId", pl.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl shrink-0"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>
@@ -630,37 +609,24 @@ export default function DoctorDashboard() {
                   </div>
                 )}
 
-                {/* ALLERGIES TAB */}
+                {/* ALLERGIES */}
                 {activeTab === "allergies" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Allergies & Medical Warnings</h3>
-                      <button onClick={() => setIsAddAllergyOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Allergy
-                      </button>
+                      <h3 className="font-bold text-base">Allergies & Warnings</h3>
+                      <button onClick={() => setIsAddAllergyOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {allergies.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No active allergies or reactions logged.</p>
-                    ) : (
-                      <div className="flex flex-col gap-3">
+                    {allergies.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No allergies logged.</p> : (
+                      <div className="flex flex-col gap-2">
                         {allergies.map((a) => (
-                          <div key={a.id} className={`p-4 rounded-2xl flex items-center justify-between border ${
-                            a.severity === "HIGH" 
-                              ? "bg-warning-orange/20 border-warning-orange/30 text-warning-orange-foreground" 
-                              : "bg-muted border-border"
-                          }`}>
-                            <div className="flex items-center gap-3">
-                              <AlertTriangle className="w-5 h-5 shrink-0" />
-                              <div>
-                                <h4 className="font-bold text-sm">{a.item} <span className="text-xs opacity-85">({a.type})</span></h4>
-                                {a.reaction && <p className="text-xs mt-0.5 font-medium">{a.reaction}</p>}
-                                <span className="text-[10px] font-bold uppercase tracking-wide border px-2 py-0.5 rounded-full mt-1.5 inline-block opacity-90">Severity: {a.severity}</span>
-                              </div>
+                          <div key={a.id} className={`flex items-center gap-3 p-4 rounded-2xl border ${a.severity === "HIGH" ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-100"}`}>
+                            <AlertTriangle className={`w-5 h-5 shrink-0 ${a.severity === "HIGH" ? "text-red-500" : "text-orange-500"}`} />
+                            <div className="flex-1">
+                              <p className="font-bold text-sm">{a.item} <span className="text-xs font-normal opacity-70">({a.type})</span></p>
+                              {a.reaction && <p className="text-xs mt-0.5">{a.reaction}</p>}
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full mt-1 inline-block ${a.severity === "HIGH" ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"}`}>{a.severity}</span>
                             </div>
-                            <button onClick={() => handleDeleteSubresource("allergies", "allergyId", a.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <button onClick={() => handleDeleteSubresource("allergies", "allergyId", a.id)} className="p-2 text-red-400 hover:bg-red-100 rounded-xl shrink-0"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>
@@ -668,33 +634,24 @@ export default function DoctorDashboard() {
                   </div>
                 )}
 
-                {/* MEDICATION TAB */}
+                {/* MEDICATIONS */}
                 {activeTab === "meds" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Active Medications</h3>
-                      <button onClick={() => setIsAddMedOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Medication
-                      </button>
+                      <h3 className="font-bold text-base">Medications</h3>
+                      <button onClick={() => setIsAddMedOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {meds.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No daily meds assigned.</p>
-                    ) : (
-                      <div className="flex flex-col gap-3">
+                    {meds.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No medications scheduled.</p> : (
+                      <div className="flex flex-col gap-2">
                         {meds.map((m) => (
-                          <div key={m.id} className="p-4 border border-border rounded-2xl flex items-center justify-between shadow-sm">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-lg bg-warning-orange/15 text-lg flex items-center justify-center">💊</div>
-                              <div>
-                                <h4 className="font-bold text-sm">{m.name} ({m.dosage})</h4>
-                                <p className="text-xs text-muted-foreground font-medium">Frequency: {m.frequency} | {m.timeOfDay} ({m.reminderTime || "No time set"})</p>
-                                {m.instructions && <p className="text-xs text-muted-foreground mt-0.5">{m.instructions}</p>}
-                              </div>
+                          <div key={m.id} className="flex items-center gap-3 p-4 border border-border rounded-2xl bg-orange-50/40">
+                            <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center text-xl shrink-0">💊</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm">{m.name} <span className="text-muted-foreground font-normal">({m.dosage})</span></p>
+                              <p className="text-xs text-muted-foreground">{m.frequency} · {m.timeOfDay}</p>
+                              {m.instructions && <p className="text-xs text-muted-foreground mt-0.5 truncate">{m.instructions}</p>}
                             </div>
-                            <button onClick={() => handleDeleteSubresource("medications", "medicationId", m.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <button onClick={() => handleDeleteSubresource("medications", "medicationId", m.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl shrink-0"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>
@@ -702,39 +659,26 @@ export default function DoctorDashboard() {
                   </div>
                 )}
 
-                {/* ROUTINES TAB */}
+                {/* ROUTINES */}
                 {activeTab === "reminders" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Routines & Activities</h3>
-                      <button onClick={() => setIsAddReminderOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Routine
-                      </button>
+                      <h3 className="font-bold text-base">Routines & Activities</h3>
+                      <button onClick={() => setIsAddReminderOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {reminders.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No routine schedules logged.</p>
-                    ) : (
-                      <div className="flex flex-col gap-3">
+                    {reminders.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No routines scheduled.</p> : (
+                      <div className="flex flex-col gap-2">
                         {reminders.map((r) => (
-                          <div key={r.id} className="p-4 border border-border rounded-2xl flex items-center justify-between shadow-sm">
-                            <div className="flex items-center gap-3">
-                              <Calendar className="w-5 h-5 text-muted-foreground shrink-0" />
-                              <div>
-                                <h4 className="font-bold text-sm">{r.title}</h4>
-                                {r.description && <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>}
-                                <p className="text-[10px] text-muted-foreground font-semibold mt-1">Time: {new Date(r.dateTime).toLocaleTimeString([], {hour: "2-digit", minute:"2-digit"})}</p>
-                              </div>
+                          <div key={r.id} className="flex items-center gap-3 p-4 border border-border rounded-2xl">
+                            <Calendar className="w-5 h-5 text-muted-foreground shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm">{r.title}</p>
+                              {r.description && <p className="text-xs text-muted-foreground truncate">{r.description}</p>}
+                              <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(r.dateTime).toLocaleString()}</p>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                r.completed ? "bg-accent/20 text-accent-foreground" : "bg-muted text-muted-foreground"
-                              }`}>
-                                {r.completed ? "Completed" : "Pending"}
-                              </span>
-                              <button onClick={() => handleDeleteSubresource("reminders", "reminderId", r.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${r.completed ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"}`}>{r.completed ? "Done" : "Pending"}</span>
+                              <button onClick={() => handleDeleteSubresource("reminders", "reminderId", r.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           </div>
                         ))}
@@ -743,357 +687,218 @@ export default function DoctorDashboard() {
                   </div>
                 )}
 
-                {/* JOURNALS TAB */}
+                {/* JOURNALS */}
                 {activeTab === "journals" && (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">Memory Journal Logs</h3>
-                      <button onClick={() => setIsAddJournalOpen(true)} className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-semibold flex items-center gap-1 hover:shadow-sm">
-                        <Plus className="w-3.5 h-3.5" /> Add Entry
-                      </button>
+                      <h3 className="font-bold text-base">Memory Journal</h3>
+                      <button onClick={() => setIsAddJournalOpen(true)} className="px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold flex items-center gap-1"><Plus className="w-3.5 h-3.5" />Add</button>
                     </div>
-
-                    {journals.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-8">No journal memories logged yet.</p>
-                    ) : (
-                      <div className="flex flex-col gap-4">
+                    {journals.length === 0 ? <p className="text-xs text-muted-foreground text-center py-10">No journal entries yet.</p> : (
+                      <div className="flex flex-col gap-3">
                         {journals.map((j) => (
-                          <div key={j.id} className="p-5 border border-border rounded-2xl flex flex-col gap-3 shadow-sm">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                          <div key={j.id} className="p-4 border border-border rounded-2xl flex flex-col gap-2">
+                            <div className="flex justify-between items-start gap-2">
                               <div>
-                                <h4 className="font-extrabold text-sm">{j.title}</h4>
-                                <span className="text-[10px] text-muted-foreground font-semibold">{new Date(j.createdAt).toLocaleDateString()}</span>
+                                <p className="font-bold text-sm text-primary">{j.title}</p>
+                                <p className="text-[10px] text-muted-foreground">{new Date(j.createdAt).toLocaleDateString()}</p>
                               </div>
-                              <button onClick={() => handleDeleteSubresource("journals", "journalId", j.id)} className="p-2 text-warning-orange-foreground hover:bg-warning-orange/10 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <button onClick={() => handleDeleteSubresource("journals", "journalId", j.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-xl shrink-0"><Trash2 className="w-4 h-4" /></button>
                             </div>
-                            <p className="text-xs leading-relaxed text-muted-foreground">{j.content}</p>
-                            {j.mediaUrl && (
-                              <div className="mt-2 w-full max-w-sm rounded-xl overflow-hidden max-h-48 bg-muted">
-                                <img src={j.mediaUrl} alt={j.title} className="w-full h-full object-cover" />
-                              </div>
-                            )}
+                            <p className="text-xs text-muted-foreground leading-relaxed">{j.content}</p>
+                            {j.mediaUrl && <div className="w-full rounded-xl overflow-hidden max-h-40 bg-muted"><img src={j.mediaUrl} alt={j.title} className="w-full h-full object-cover" /></div>}
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                 )}
-
               </div>
             </div>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
 
-      {/* --- FORM OVERLAYS / MODALS --- */}
-      
-      {/* 1. Register Patient Modal */}
+      {/* ── MODALS ── */}
+
+      {/* Register Patient */}
       {isRegisterOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleRegisterPatient} className="w-full max-w-lg bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg">Register Patient & Account</h3>
-            
-            {feedbackMsg && <div className="p-3 bg-warning-orange/20 text-warning-orange-foreground rounded-xl text-xs">{feedbackMsg}</div>}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required type="text" value={regName} onChange={(e) => setRegName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Robert Chen" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Email</label>
-                <input required type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="robert@mail.com" />
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <form onSubmit={handleRegisterPatient} className="w-full sm:max-w-lg bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-lg">Register New Patient</h3>
+              <button type="button" onClick={() => setIsRegisterOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input required type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="••••••••" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Age</label>
-                <input required type="number" value={regAge} onChange={(e) => setRegAge(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="78" />
-              </div>
+            {feedbackMsg && <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs border border-red-200">{feedbackMsg}</div>}
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Full Name</label><input required type="text" value={regName} onChange={e=>setRegName(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Robert Chen" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Email</label><input required type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="robert@mail.com" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Password</label><input required type="password" value={regPassword} onChange={e=>setRegPassword(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="••••••••" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Age</label><input required type="number" value={regAge} onChange={e=>setRegAge(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="78" /></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Blood Group</label><input type="text" value={regBlood} onChange={e=>setRegBlood(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="AB+" /></div>
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Home Address</label>
-              <input type="text" value={regAddress} onChange={(e) => setRegAddress(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="123 Lavender Lane, Seattle" />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" value={regBlood} onChange={(e) => setRegBlood(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="AB+" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Emergency Contact Details</label>
-                <input type="text" value={regContact} onChange={(e) => setRegContact(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Sarah Chen (Daughter) - 555-0199" />
-              </div>
-            </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button type="button" onClick={() => setIsRegisterOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold hover:bg-muted">Cancel</button>
-              <button type="submit" disabled={submitting} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/95">
-                {submitting ? "Saving..." : "Create Account"}
-              </button>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Home Address</label><input type="text" value={regAddress} onChange={e=>setRegAddress(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="123 Lavender Lane" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Emergency Contact</label><input type="text" value={regContact} onChange={e=>setRegContact(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Sarah Chen (Daughter) - 555-0199" /></div>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => setIsRegisterOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted transition">Cancel</button>
+              <button type="submit" disabled={submitting} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold hover:bg-primary/90 transition">{submitting ? "Creating..." : "Create Account"}</button>
             </div>
           </form>
         </div>
       )}
 
-      {/* 2. Add Person Modal */}
+      {/* Add Person */}
       {isAddPeopleOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Add Known Person</h3>
-            {feedbackMsg && <div className="p-2.5 bg-warning-orange/20 text-warning-orange-foreground rounded-lg text-xs">{feedbackMsg}</div>}
-            
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Add Known Person</h3><button onClick={() => setIsAddPeopleOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            {feedbackMsg && <p className="text-xs text-red-500 bg-red-50 p-2 rounded-xl">{feedbackMsg}</p>}
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Name</label><input type="text" value={formName} onChange={e=>setFormName(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Sarah Chen" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Relationship</label><input type="text" value={formRelationship} onChange={e=>setFormRelationship(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Daughter" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Description</label><textarea rows={3} value={formDesc} onChange={e=>setFormDesc(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary resize-none" placeholder="Sarah is your daughter..." /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Positive Memory</label><input type="text" value={formMemory} onChange={e=>setFormMemory(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="She taught her to ride a bike..." /></div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Name</label>
-              <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Sarah Chen" />
-            </div>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Relationship</label>
-              <input type="text" value={formRelationship} onChange={(e) => setFormRelationship(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Daughter" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Memory Description</label>
-              <textarea rows={3} value={formDesc} onChange={(e) => setFormDesc(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Sarah is your daughter. She visits every Sunday." />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Positive Reassuring Memory</label>
-              <input type="text" value={formMemory} onChange={(e) => setFormMemory(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="She remembers when you taught her how to ride a bike." />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Photo (Optional)</label>
+              <label className="text-xs font-bold text-muted-foreground">Photo</label>
               <div className="flex gap-2 items-center">
-                <label className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`}>
+                <label className={`px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30"}`}>
                   {uploading ? "Uploading..." : "📁 Upload"}
-                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
                 </label>
-                <span className="text-xs text-muted-foreground">or</span>
-                <input type="text" value={formPhoto} onChange={(e) => setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm" placeholder="Paste URL https://..." />
+                <input type="text" value={formPhoto} onChange={e=>setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="or paste URL..." />
               </div>
-              {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-border mt-1" />}
+              {formPhoto && <img src={formPhoto} alt="Preview" className="w-14 h-14 rounded-xl object-cover border border-border" />}
             </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddPeopleOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("people", { name: formName, relationship: formRelationship, description: formDesc, photoUrl: formPhoto, positiveMemory: formMemory }, setIsAddPeopleOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddPeopleOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("people", { name: formName, relationship: formRelationship, description: formDesc, photoUrl: formPhoto, positiveMemory: formMemory }, setIsAddPeopleOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3. Add Place Modal */}
+      {/* Add Place */}
       {isAddPlaceOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Add Visited Place</h3>
-            
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Add Visited Place</h3><button onClick={() => setIsAddPlaceOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Place Name</label><input type="text" value={formName} onChange={e=>setFormName(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Green Lake Park" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Address</label><input type="text" value={formAddress} onChange={e=>setFormAddress(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="7201 E Green Lake Dr" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Description</label><textarea rows={3} value={formDesc} onChange={e=>setFormDesc(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary resize-none" placeholder="You love walking here..." /></div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Place Name</label>
-              <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Green Lake Park" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Address</label>
-              <input type="text" value={formAddress} onChange={(e) => setFormAddress(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="7201 E Green Lake Dr" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Memory Description</label>
-              <textarea rows={3} value={formDesc} onChange={(e) => setFormDesc(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="You love walking around the lake in the morning." />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Photo (Optional)</label>
+              <label className="text-xs font-bold text-muted-foreground">Photo</label>
               <div className="flex gap-2 items-center">
-                <label className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`}>
+                <label className={`px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30"}`}>
                   {uploading ? "Uploading..." : "📁 Upload"}
-                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
                 </label>
-                <span className="text-xs text-muted-foreground">or</span>
-                <input type="text" value={formPhoto} onChange={(e) => setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm" placeholder="Paste URL https://..." />
+                <input type="text" value={formPhoto} onChange={e=>setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="or paste URL..." />
               </div>
-              {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-border mt-1" />}
+              {formPhoto && <img src={formPhoto} alt="Preview" className="w-14 h-14 rounded-xl object-cover border border-border" />}
             </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddPlaceOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("places", { name: formName, address: formAddress, description: formDesc, photoUrl: formPhoto }, setIsAddPlaceOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddPlaceOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("places", { name: formName, address: formAddress, description: formDesc, photoUrl: formPhoto }, setIsAddPlaceOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. Add Allergy Modal */}
+      {/* Add Allergy */}
       {isAddAllergyOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Add Allergy Warning</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <select value={formType} onChange={(e) => setFormType(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm">
-                  <option>FOOD</option>
-                  <option>MEDICINE</option>
-                  <option>ENVIRONMENT</option>
-                  <option>OTHER</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Severity</label>
-                <select value={formSeverity} onChange={(e) => setFormSeverity(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm">
-                  <option>LOW</option>
-                  <option>MEDIUM</option>
-                  <option>HIGH</option>
-                </select>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Add Allergy</h3><button onClick={() => setIsAddAllergyOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Type</label><select value={formType} onChange={e=>setFormType(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary"><option>FOOD</option><option>MEDICINE</option><option>ENVIRONMENT</option><option>OTHER</option></select></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Severity</label><select value={formSeverity} onChange={e=>setFormSeverity(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary"><option>LOW</option><option>MEDIUM</option><option>HIGH</option></select></div>
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Allergy Item</label>
-              <input type="text" value={formItem} onChange={(e) => setFormItem(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="e.g. Peanuts, Penicillin" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Reaction Description</label>
-              <input type="text" value={formReaction} onChange={(e) => setFormReaction(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="e.g. Swelling, skin rash" />
-            </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddAllergyOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("allergies", { type: formType, item: formItem, reaction: formReaction, severity: formSeverity }, setIsAddAllergyOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Allergy Item</label><input type="text" value={formItem} onChange={e=>setFormItem(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="e.g. Peanuts" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Reaction</label><input type="text" value={formReaction} onChange={e=>setFormReaction(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="e.g. Swelling" /></div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddAllergyOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("allergies", { type: formType, item: formItem, reaction: formReaction, severity: formSeverity }, setIsAddAllergyOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 5. Add Medication Modal */}
+      {/* Add Medication */}
       {isAddMedOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Schedule Medication</h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Donepezil" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Dosage</label>
-                <input type="text" value={formDosage} onChange={(e) => setFormDosage(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="10 mg" />
-              </div>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Add Medication</h3><button onClick={() => setIsAddMedOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Medicine</label><input type="text" value={formName} onChange={e=>setFormName(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Donepezil" /></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Dosage</label><input type="text" value={formDosage} onChange={e=>setFormDosage(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="10 mg" /></div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" value={formFreq} onChange={(e) => setFormFreq(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Once daily" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Time of Day</label>
-                <select value={formTime} onChange={(e) => setFormTime(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm">
-                  <option>Morning</option>
-                  <option>Afternoon</option>
-                  <option>Night</option>
-                </select>
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Frequency</label><input type="text" value={formFreq} onChange={e=>setFormFreq(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Once daily" /></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Time of Day</label><select value={formTime} onChange={e=>setFormTime(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary"><option>Morning</option><option>Afternoon</option><option>Night</option></select></div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input type="text" value={formTimeHour} onChange={(e) => setFormTimeHour(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="08:00" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Image (Optional)</label>
-                <div className="flex gap-2 items-center">
-                  <label className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`}>
-                    {uploading ? "Uploading..." : "📁 Upload"}
-                    <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
-                  </label>
-                  <input type="text" value={formPhoto} onChange={(e) => setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm" placeholder="or paste URL" />
-                </div>
-                {formPhoto && <img src={formPhoto} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-border mt-1" />}
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Reminder (HH:MM)</label><input type="text" value={formTimeHour} onChange={e=>setFormTimeHour(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="08:00" /></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Instructions</label><input type="text" value={formInstructions} onChange={e=>setFormInstructions(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="With food" /></div>
             </div>
-
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Instructions</label>
-              <input type="text" value={formInstructions} onChange={(e) => setFormInstructions(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Take with breakfast." />
-            </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddMedOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("medications", { name: formName, dosage: formDosage, frequency: formFreq, timeOfDay: formTime, reminderTime: formTimeHour, imageUrl: formPhoto, instructions: formInstructions }, setIsAddMedOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Add Reminder Modal */}
-      {isAddReminderOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Add Routine Activity</h3>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Activity Title</label>
-              <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Eat breakfast" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Activity Description</label>
-              <input type="text" value={formDesc} onChange={(e) => setFormDesc(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Oatmeal with berries." />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Time Schedule (Date & Time)</label>
-              <input type="datetime-local" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" />
-            </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddReminderOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("reminders", { title: formTitle, description: formDesc, dateTime: formDate }, setIsAddReminderOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. Add Journal Modal */}
-      {isAddJournalOpen && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-card border border-border p-6 rounded-3xl shadow-xl flex flex-col gap-4">
-            <h3 className="font-bold text-lg">Log Memory Journal</h3>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Memory Title</label>
-              <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="Robert's Cozy Birthday" />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Memory Description / Details</label>
-              <textarea rows={4} value={formContent} onChange={(e) => setFormContent(e.target.value)} className="p-2.5 rounded-xl border border-border text-sm" placeholder="We gathered at Robert's home, ate pie, and played jazz..." />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">Associated Photo</label>
+              <label className="text-xs font-bold text-muted-foreground">Image (Optional)</label>
               <div className="flex gap-2 items-center">
-                <label className={`px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition border ${uploading ? "bg-muted text-muted-foreground border-border" : "bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"}`}>
+                <label className={`px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer border ${uploading ? "bg-muted border-border" : "bg-primary/10 text-primary border-primary/30"}`}>
                   {uploading ? "Uploading..." : "📁 Upload"}
-                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
                 </label>
-                <span className="text-xs text-muted-foreground">or</span>
-                <input type="text" value={formPhoto} onChange={(e) => setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm" placeholder="Paste URL https://..." />
+                <input type="text" value={formPhoto} onChange={e=>setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="or paste URL" />
               </div>
-              {formPhoto && <img src={formPhoto} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-border mt-1" />}
+              {formPhoto && <img src={formPhoto} alt="Preview" className="w-12 h-12 rounded-xl object-cover border border-border" />}
             </div>
-
-            <div className="flex gap-3 justify-end mt-2">
-              <button onClick={() => setIsAddJournalOpen(false)} className="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
-              <button onClick={() => handleAddSubresource("journals", { title: formTitle, content: formContent, mediaUrl: formPhoto, mediaType: formMediaType }, setIsAddJournalOpen)} className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold">Save</button>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddMedOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("medications", { name: formName, dosage: formDosage, frequency: formFreq, timeOfDay: formTime, reminderTime: formTimeHour, imageUrl: formPhoto, instructions: formInstructions }, setIsAddMedOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Add Routine */}
+      {isAddReminderOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Add Routine Activity</h3><button onClick={() => setIsAddReminderOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Activity Title</label><input type="text" value={formTitle} onChange={e=>setFormTitle(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Eat breakfast" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Description</label><input type="text" value={formDesc} onChange={e=>setFormDesc(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Oatmeal with berries" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Date & Time</label><input type="datetime-local" value={formDate} onChange={e=>setFormDate(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" /></div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddReminderOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("reminders", { title: formTitle, description: formDesc, dateTime: formDate }, setIsAddReminderOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Journal */}
+      {isAddJournalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="w-full sm:max-w-md bg-card border border-border p-5 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between"><h3 className="font-bold text-lg">Log Memory Journal</h3><button onClick={() => setIsAddJournalOpen(false)} className="p-2 rounded-xl hover:bg-muted"><X className="w-5 h-5" /></button></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Title</label><input type="text" value={formTitle} onChange={e=>setFormTitle(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="Robert's Cozy Birthday" /></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-bold text-muted-foreground">Memory Details</label><textarea rows={4} value={formContent} onChange={e=>setFormContent(e.target.value)} className="w-full p-3 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary resize-none" placeholder="We gathered at Robert's home..." /></div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-muted-foreground">Photo</label>
+              <div className="flex gap-2 items-center">
+                <label className={`px-3 py-2.5 rounded-xl text-xs font-bold cursor-pointer border ${uploading ? "bg-muted border-border" : "bg-primary/10 text-primary border-primary/30"}`}>
+                  {uploading ? "Uploading..." : "📁 Upload"}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => { if (e.target.files?.[0]) handleFileUpload(e.target.files[0]); }} />
+                </label>
+                <input type="text" value={formPhoto} onChange={e=>setFormPhoto(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-border text-sm bg-background focus:outline-none focus:border-primary" placeholder="or paste URL..." />
+              </div>
+              {formPhoto && <img src={formPhoto} alt="Preview" className="w-14 h-14 rounded-xl object-cover border border-border" />}
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setIsAddJournalOpen(false)} className="flex-1 py-3 border border-border rounded-2xl text-sm font-bold hover:bg-muted">Cancel</button>
+              <button onClick={() => handleAddSubresource("journals", { title: formTitle, content: formContent, mediaUrl: formPhoto, mediaType: formMediaType }, setIsAddJournalOpen)} className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

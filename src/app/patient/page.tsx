@@ -336,80 +336,54 @@ export default function PatientDashboard() {
 
   return (
     <div className="flex flex-col min-h-screen text-foreground pb-20">
-      {/* Top Accessible Navbar */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border px-4 sm:px-6 py-3 sm:py-5 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-              RememberMe
-            </span>
+      {/* Compact Sticky Header */}
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shrink-0">
+            <span className="text-white text-xs font-black">RM</span>
+          </div>
+          <div>
+            <p className="font-extrabold text-sm leading-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">RememberMe</p>
+            <p className="text-[10px] text-muted-foreground">Memory Care</p>
           </div>
         </div>
-
-        {/* Big Accessibility Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* TTS Toggler */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setSpeechEnabled(!speechEnabled)}
-            className={`px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm rounded-full font-extrabold flex items-center gap-2 border shadow-sm transition-all ${
-              speechEnabled 
-                ? "bg-accent/20 border-accent text-accent-foreground" 
-                : "bg-muted border-border text-muted-foreground hover:bg-card"
-            }`}
+            className={`p-2 rounded-xl border transition ${speechEnabled ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground"}`}
+            title={speechEnabled ? "Voice ON" : "Voice OFF"}
           >
-            {speechEnabled ? (
-              <>
-                <Volume2 className="w-5 h-5 text-accent-foreground" /> Voice Narration ON
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-5 h-5" /> Voice Narration OFF
-              </>
-            )}
+            {speechEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
-
-          {/* Font Size Adjusters */}
-          <div className="flex items-center border border-border rounded-full p-1 bg-muted">
+          <div className="flex items-center border border-border rounded-xl p-0.5 bg-muted gap-0.5">
             {(["normal", "large", "extra-large"] as FontSizeLevel[]).map((level) => (
-              <button
-                key={level}
-                onClick={() => setFontSize(level)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                  fontSize === level 
-                    ? "bg-card text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
+              <button key={level} onClick={() => setFontSize(level)}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${fontSize === level ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
                 {level === "normal" ? "A" : level === "large" ? "A+" : "A++"}
               </button>
             ))}
           </div>
-
-          <button
-            onClick={logout}
-            className="px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm rounded-full bg-warning-orange/20 text-warning-orange-foreground border border-warning-orange/30 font-bold flex items-center gap-2 hover:bg-warning-orange/40 transition"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out
+          <button onClick={logout}
+            className="px-3 py-1.5 rounded-xl bg-red-50 text-red-500 border border-red-200 font-bold text-xs flex items-center gap-1">
+            <LogOut className="w-3.5 h-3.5" /> Out
           </button>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 flex flex-col gap-6 sm:gap-10">
+      <main className="max-w-2xl mx-auto w-full px-4 py-4 pb-8 flex flex-col gap-4 sm:gap-6">
         {/* Calming Greeting banner */}
-        <div className="p-4 sm:p-6 rounded-[2rem] bg-gradient-to-r from-secondary/40 via-info-blue/20 to-accent/20 border border-primary/10 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-              Hello, {patientData?.name || "Robert"}
-            </h1>
-            <p className="text-muted-foreground font-semibold">
-              Today is a quiet, beautiful day. You are safe at home.
-            </p>
-          </div>
+        <div className="p-4 sm:p-6 rounded-3xl bg-gradient-to-br from-primary/15 via-secondary/10 to-background border border-primary/15 shadow-sm">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Hello, {patientData?.name || "Robert"} 👋
+          </h1>
+          <p className="text-muted-foreground font-semibold text-sm mt-1">
+            Today is a quiet, beautiful day. You are safe.
+          </p>
           <button
             onClick={() => speak(`Hello ${patientData?.name || "Robert"}. Today is a beautiful day. You are safe at home.`)}
-            className="px-6 py-3 bg-card border border-border rounded-xl font-extrabold text-sm shadow-sm hover:bg-muted transition flex items-center gap-2 self-start md:self-auto"
+            className="mt-3 px-4 py-2 bg-card border border-border rounded-xl font-bold text-sm shadow-sm flex items-center gap-2 w-fit"
           >
-            <Volume2 className="w-5 h-5 text-primary" /> Hear Greeting
+            <Volume2 className="w-4 h-4 text-primary" /> Hear Greeting
           </button>
         </div>
 
@@ -439,8 +413,8 @@ export default function PatientDashboard() {
           )}
         </div>
 
-        {/* Main Grid: Left column (People, Places), Right Column (Routines, AI Chat) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 gap-6">
           
           {/* LEFT: PEOPLE & PLACES */}
           <div className="flex flex-col gap-10">
