@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/frontend/providers";
+import { SessionProvider } from "@/frontend/session-provider";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -23,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className={`${outfit.variable} h-full antialiased font-sans`}>
-        <AppProviders>{children}</AppProviders>
+        <SessionProvider>
+          <AppProviders>{children}</AppProviders>
+        </SessionProvider>
       </body>
     </html>
   );
