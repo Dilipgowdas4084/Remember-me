@@ -29,7 +29,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setError(null);
     try {
-      await signIn("google", { callbackUrl: "/api/auth/google-callback" });
+      await signIn("google", { callbackUrl: "/api/auth/set-cookie" });
     } catch {
       setError("Google sign-in failed. Please try again.");
       setGoogleLoading(false);

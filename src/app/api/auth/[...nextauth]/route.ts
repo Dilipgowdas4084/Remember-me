@@ -3,7 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/backend/db";
 import { signToken } from "@/backend/auth";
 
-const handler = NextAuth({
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -15,17 +15,14 @@ const handler = NextAuth({
     signIn: "/auth/login",
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account }: any) {
       if (account?.provider === "google" && user.email) {
         try {
-          // Check if user already exists
           let dbUser = await prisma.user.findUnique({
             where: { email: user.email },
           });
 
           if (!dbUser) {
-            // Create a bare user — role is PATIENT by default
-            // The doctor can link them to a patient profile later
             dbUser = await prisma.user.create({
               data: {
                 email: user.email,
@@ -35,16 +32,13 @@ const handler = NextAuth({
             });
           }
 
-          // Build our JWT and attach to user object for the jwt callback
-          const token = signToken({
+          // Store our JWT + role in user object to pass into jwt callback
+          (user as any)._appToken = signToken({
             id: dbUser.id,
             email: dbUser.email,
             role: dbUser.role,
           });
-
-          (user as any)._appToken = token;
           (user as any)._appRole = dbUser.role;
-          (user as any)._appId = dbUser.id;
 
           return true;
         } catch (e) {
@@ -55,26 +49,26 @@ const handler = NextAuth({
       return true;
     },
 
-    async jwt({ token, user }) {
-      if (user) {
-        if ((user as any)._appToken) token.appToken = (user as any)._appToken;
-        if ((user as any)._appRole) token.appRole = (user as any)._appRole;
-        if ((user as any)._appId) token.appId = (user as any)._appId;
+    async jwt({ token, user }: any) {
+      if (user?._appToken) {
+        token.appToken = user._appToken;
+        token.appRole = user._appRole;
       }
       return token;
     },
 
-    async session({ session, token }) {
-      (session as any).appToken = token.appToken;
-      (session as any).appRole = token.appRole;
-      (session as any).appId = token.appId;
+    async session({ session, token }: any) {
+      session.appToken = token.appToken;
+      session.appRole = token.appRole;
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
-      return `${baseUrl}/api/auth/google-callback`;
+    // After Google login, redirect to our cookie-setter endpoint
+    async redirect({ baseUrl }: any) {
+      return `${baseUrl}/api/auth/set-cookie`;
     },
   },
-});
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

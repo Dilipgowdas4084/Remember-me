@@ -1,0 +1,3743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentinelAI — Intelligent Insider Threat Detection System</title>
+  <meta name="description" content="SentinelAI is an AI-powered insider threat detection and user behavior analytics platform. Monitor users, detect anomalies, and generate real-time risk scores." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050b14;
+      --bg2: #080f1c;
+      --bg3: #0d1a2e;
+      --surface: #0f1e35;
+      --surface2: #152640;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --text: #e8edf5;
+      --text2: #8fa3be;
+      --text3: #5a7394;
+      --primary: #00d4ff;
+      --primary-dim: rgba(0,212,255,0.15);
+      --primary-glow: rgba(0,212,255,0.3);
+      --green: #00e676;
+      --green-dim: rgba(0,230,118,0.12);
+      --yellow: #ffb300;
+      --yellow-dim: rgba(255,179,0,0.12);
+      --red: #ff3d5a;
+      --red-dim: rgba(255,61,90,0.12);
+      --purple: #7c4dff;
+      --purple-dim: rgba(124,77,255,0.12);
+      --orange: #ff6d00;
+      --orange-dim: rgba(255,109,0,0.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.5);
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ═══ SCROLLBAR ═══ */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* ═══ KEYFRAMES ═══ */
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scanLine {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes glowPulse {
+      0%, 100% { box-shadow: 0 0 12px var(--primary-glow); }
+      50% { box-shadow: 0 0 32px var(--primary-glow), 0 0 64px rgba(0,212,255,0.15); }
+    }
+    @keyframes slideRight {
+      from { width: 0; }
+      to { width: var(--target-w); }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes alertIn {
+      from { opacity: 0; transform: translateX(120px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(4); opacity: 0; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ═══ LANDING PAGE ═══ */
+    #landing {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .landing-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,212,255,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(124,77,255,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 40% 30% at 10% 60%, rgba(0,230,118,0.04) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ═══ NAV ═══ */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(5,11,20,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(124,77,255,0.2));
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 16px var(--primary-glow);
+      animation: glowPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+      animation: scanLine 2s linear infinite;
+      opacity: 0.6;
+    }
+
+    .logo-icon svg { width: 20px; height: 20px; }
+
+    .logo-text {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .logo-text span:first-child { color: var(--text); }
+    .logo-text span:last-child {
+      background: linear-gradient(90deg, var(--primary), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--green);
+      background: var(--green-dim);
+      border: 1px solid rgba(0,230,118,0.2);
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      position: relative;
+    }
+    .status-dot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid var(--green);
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      border-radius: 999px;
+      font-family: inherit; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; border: none; text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border2);
+    }
+    .btn-ghost:hover { background: var(--surface); color: var(--text); border-color: var(--border2); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #0095d4);
+      color: var(--bg);
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0,212,255,0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 24px rgba(0,212,255,0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ═══ HERO ═══ */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      background: var(--primary-dim);
+      border: 1px solid rgba(0,212,255,0.25);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+      animation: fadeSlideIn 0.6s ease both;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin-bottom: 1.5rem;
+      animation: fadeSlideIn 0.6s 0.1s ease both;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 50%, var(--red) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text2);
+      line-height: 1.75;
+      max-width: 42rem;
+      margin: 0 auto 2.5rem;
+      animation: fadeSlideIn 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 4rem;
+      animation: fadeSlideIn 0.6s 0.3s ease both;
+    }
+
+    .btn-hero {
+      padding: 0.9rem 2.25rem;
+      font-size: 1rem;
+      border-radius: 999px;
+    }
+
+    /* ═══ THREAT TICKER ═══ */
+    .threat-ticker {
+      width: 100%;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .threat-ticker::before,
+    .threat-ticker::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      z-index: 2;
+    }
+    .threat-ticker::before { left: 0; background: linear-gradient(90deg, var(--surface), transparent); }
+    .threat-ticker::after { right: 0; background: linear-gradient(270deg, var(--surface), transparent); }
+
+    .ticker-inner {
+      display: flex;
+      gap: 3rem;
+      animation: tickerScroll 30s linear infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes tickerScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text2);
+    }
+
+    .ticker-item .t-label {
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .ticker-item .t-label.crit { background: var(--red-dim); color: var(--red); }
+    .ticker-item .t-label.high { background: var(--orange-dim); color: var(--orange); }
+    .ticker-item .t-label.med { background: var(--yellow-dim); color: var(--yellow); }
+    .ticker-item .t-label.low { background: var(--green-dim); color: var(--green); }
+
+    /* ═══ STATS STRIP ═══ */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    .stat-block {
+      background: var(--bg);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .stat-block:hover { background: var(--surface); }
+
+    .stat-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .stat-block:nth-child(1)::before { background: var(--primary); }
+    .stat-block:nth-child(2)::before { background: var(--red); }
+    .stat-block:nth-child(3)::before { background: var(--yellow); }
+    .stat-block:nth-child(4)::before { background: var(--green); }
+
+    .stat-num {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .stat-block:nth-child(1) .stat-num { color: var(--primary); }
+    .stat-block:nth-child(2) .stat-num { color: var(--red); }
+    .stat-block:nth-child(3) .stat-num { color: var(--yellow); }
+    .stat-block:nth-child(4) .stat-num { color: var(--green); }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ═══ FEATURES SECTION ═══ */
+    .features-section {
+      padding: 5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+    }
+
+    .section-tag::before, .section-tag::after {
+      content: '';
+      width: 30px; height: 1px;
+      background: var(--primary);
+      opacity: 0.4;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text2);
+      max-width: 36rem;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, var(--hover-color, rgba(0,212,255,0.04)) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon-wrap {
+      width: 48px; height: 48px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.4rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    .feature-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ═══ DASHBOARD SECTION ═══ */
+    #dashboard {
+      display: none;
+      min-height: 100vh;
+      background: var(--bg2);
+    }
+
+    /* ═══ SIDEBAR ═══ */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .sidebar-logo .logo-icon { width: 32px; height: 32px; border-radius: 8px; }
+    .sidebar-logo .logo-text { font-size: 1rem; }
+
+    .sidebar-section { padding: 1.5rem 1rem 0.5rem; }
+
+    .sidebar-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover { background: var(--surface); color: var(--text); }
+    .nav-item.active {
+      background: var(--primary-dim);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 3px; height: 60%;
+      background: var(--primary);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      min-width: 20px;
+      text-align: center;
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .user-card:hover { background: var(--surface2); }
+
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+    .user-role { font-size: 0.7rem; color: var(--text3); }
+
+    /* ═══ MAIN CONTENT ═══ */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.875rem 1.75rem;
+      background: rgba(8,15,28,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-left { display: flex; flex-direction: column; }
+    .topbar-title { font-size: 1.1rem; font-weight: 700; }
+    .topbar-sub { font-size: 0.75rem; color: var(--text3); }
+
+    .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+
+    .topbar-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--primary);
+      background: var(--primary-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+    }
+    .icon-btn:hover { background: var(--surface2); border-color: var(--border2); }
+
+    .icon-btn .notif-dot {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 8px; height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      border: 1.5px solid var(--bg);
+    }
+
+    /* ═══ PAGE SECTIONS ═══ */
+    .page { display: none; padding: 1.75rem; animation: fadeSlideIn 0.3s ease; }
+    .page.active { display: block; }
+
+    /* ═══ OVERVIEW CARDS ═══ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .kpi-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
+
+    .kpi-card .kpi-accent {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .kpi-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .kpi-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .kpi-trend {
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .kpi-trend.up { color: var(--red); }
+    .kpi-trend.down { color: var(--green); }
+    .kpi-trend.neutral { color: var(--yellow); }
+
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: var(--text3);
+      margin-top: 0.2rem;
+    }
+
+    /* ═══ CHART GRIDS ═══ */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-grid-3 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: var(--transition);
+    }
+    .chart-card:hover { border-color: var(--border2); }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .chart-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .chart-sub {
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-top: 0.2rem;
+    }
+
+    .chart-body { position: relative; }
+
+    .chart-select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.6rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ═══ ALERTS PANEL ═══ */
+    .alerts-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .alerts-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .alerts-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+    }
+
+    .alerts-count {
+      background: var(--red);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+    }
+
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+      cursor: pointer;
+      animation: alertIn 0.4s ease;
+    }
+    .alert-item:last-child { border-bottom: none; }
+    .alert-item:hover { background: var(--bg3); }
+
+    .alert-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .alert-dot.critical { background: var(--red); box-shadow: 0 0 8px var(--red); }
+    .alert-dot.high { background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+    .alert-dot.medium { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+    .alert-dot.low { background: var(--green); }
+
+    .alert-content { flex: 1; }
+    .alert-user { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
+    .alert-reason { font-size: 0.78rem; color: var(--text2); line-height: 1.5; }
+    .alert-time { font-size: 0.7rem; color: var(--text3); margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace; }
+
+    .alert-risk {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+    }
+    .alert-risk.critical { background: var(--red-dim); color: var(--red); }
+    .alert-risk.high { background: var(--orange-dim); color: var(--orange); }
+    .alert-risk.medium { background: var(--yellow-dim); color: var(--yellow); }
+    .alert-risk.low { background: var(--green-dim); color: var(--green); }
+
+    /* ═══ USER TABLE ═══ */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.825rem;
+      color: var(--text);
+    }
+
+    .search-input input {
+      background: none;
+      border: none;
+      outline: none;
+      color: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      width: 180px;
+    }
+
+    .search-input input::placeholder { color: var(--text3); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 0.75rem 1.5rem;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg3); }
+
+    td {
+      padding: 1rem 1.5rem;
+      font-size: 0.85rem;
+      vertical-align: middle;
+    }
+
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-avatar-sm {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .risk-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .risk-bar {
+      width: 80px;
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    .risk-score-num {
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge.critical { background: var(--red-dim); color: var(--red); }
+    .badge.high { background: var(--orange-dim); color: var(--orange); }
+    .badge.medium { background: var(--yellow-dim); color: var(--yellow); }
+    .badge.low { background: var(--green-dim); color: var(--green); }
+    .badge.safe { background: var(--green-dim); color: var(--green); }
+
+    /* ═══ AI ASSISTANT ═══ */
+    .ai-chat-wrap {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1rem;
+    }
+
+    .chat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .chat-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .ai-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      animation: glowPulse 3s ease-in-out infinite;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg {
+      display: flex;
+      gap: 0.75rem;
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    .msg.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .msg.ai .msg-avatar { background: linear-gradient(135deg, var(--primary), var(--purple)); color: var(--bg); }
+    .msg.user .msg-avatar { background: var(--surface2); color: var(--text2); }
+
+    .msg-bubble {
+      max-width: 75%;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      line-height: 1.65;
+    }
+
+    .msg.ai .msg-bubble {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.user .msg-bubble {
+      background: var(--primary-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      color: var(--primary);
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-input-wrap {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.65rem 1rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-input::placeholder { color: var(--text3); }
+
+    .chat-send {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      border: none;
+      color: var(--bg);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .chat-send:hover { box-shadow: 0 4px 16px rgba(0,212,255,0.4); }
+
+    /* ═══ QUICK QUERIES ═══ */
+    .quick-queries {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .query-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.25rem;
+    }
+
+    .quick-btn {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-family: inherit;
+      font-size: 0.8rem;
+      color: var(--text2);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .quick-btn:hover { background: var(--primary-dim); border-color: rgba(0,212,255,0.25); color: var(--primary); }
+
+    /* ═══ RISK SCORER ═══ */
+    .risk-score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .risk-gauge-wrap {
+      position: relative;
+      width: 200px;
+      height: 110px;
+      margin: 1.5rem auto;
+    }
+
+    .risk-gauge-svg { width: 200px; height: 110px; }
+
+    .risk-gauge-value {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .risk-gauge-num {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .risk-gauge-label {
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-weight: 600;
+    }
+
+    .risk-factors {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .risk-factor {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .risk-factor-label {
+      font-size: 0.78rem;
+      color: var(--text2);
+      min-width: 140px;
+    }
+
+    .risk-factor-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .risk-factor-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .risk-factor-score {
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 28px;
+      text-align: right;
+    }
+
+    /* ═══ INCIDENT DETAIL MODAL ═══ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeSlideIn 0.25s ease;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 640px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title { font-size: 1rem; font-weight: 700; }
+
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+    }
+    .modal-close:hover { background: var(--red-dim); color: var(--red); }
+
+    .modal-body { padding: 1.5rem; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detail-item { }
+    .detail-item-label { font-size: 0.7rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .detail-item-value { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+
+    .incident-timeline { display: flex; flex-direction: column; gap: 0.5rem; }
+    .timeline-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .timeline-dot-wrap { display: flex; flex-direction: column; align-items: center; }
+    .timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .timeline-line { width: 1px; flex: 1; background: var(--border); margin-top: 4px; min-height: 20px; }
+    .timeline-content { flex: 1; padding-bottom: 0.75rem; }
+    .timeline-time { font-size: 0.68rem; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-bottom: 0.2rem; }
+    .timeline-text { font-size: 0.82rem; color: var(--text2); line-height: 1.5; }
+
+    /* ═══ THREAT MAP ═══ */
+    .threat-map {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .world-map-wrap {
+      position: relative;
+      height: 260px;
+      background: var(--bg3);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .map-grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .map-dot {
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+    }
+
+    .map-dot::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      opacity: 0.4;
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    .map-dot-label {
+      position: absolute;
+      top: 14px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.6rem;
+      font-weight: 700;
+      white-space: nowrap;
+      color: currentColor;
+      text-shadow: 0 0 8px currentColor;
+    }
+
+    /* ═══ ANOMALY LOG ═══ */
+    .anomaly-log {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      transition: var(--transition);
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-item:hover { background: var(--bg3); }
+
+    .log-ts { color: var(--text3); min-width: 90px; }
+    .log-level { min-width: 70px; }
+    .log-msg { color: var(--text2); flex: 1; }
+    .log-user { color: var(--primary); min-width: 80px; }
+
+    /* ═══ TOOLTIP ═══ */
+    .tooltip {
+      position: fixed;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text);
+      pointer-events: none;
+      z-index: 9999;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    /* ═══ TOAST ═══ */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      z-index: 9999;
+    }
+
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      min-width: 320px;
+      box-shadow: var(--shadow);
+      animation: alertIn 0.4s ease;
+      cursor: pointer;
+    }
+
+    .toast-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .toast-content { flex: 1; }
+    .toast-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .toast-msg { font-size: 0.78rem; color: var(--text2); }
+    .toast-close { color: var(--text3); font-size: 0.9rem; cursor: pointer; }
+
+    .toast.critical { border-left: 3px solid var(--red); }
+    .toast.warning { border-left: 3px solid var(--yellow); }
+    .toast.info { border-left: 3px solid var(--primary); }
+
+    /* ═══ LOADING ═══ */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 1024px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .chart-grid { grid-template-columns: 1fr; }
+      .chart-grid-3 { grid-template-columns: 1fr; }
+      .ai-chat-wrap { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ═══ UTILITIES ═══ */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .justify-between { justify-content: space-between; }
+    .mb-1 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 1.5rem; }
+    .text-sm { font-size: 0.875rem; }
+    .text-xs { font-size: 0.75rem; }
+    .text-muted { color: var(--text2); }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .fw-700 { font-weight: 700; }
+    .w-full { width: 100%; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* ═══ DEPARTMENT THREAT ═══ */
+    .dept-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .dept-item { }
+    .dept-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem; font-size: 0.8rem; }
+    .dept-name { font-weight: 600; }
+    .dept-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.78rem; }
+    .dept-bar { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+    .dept-bar-fill { height: 100%; border-radius: 3px; }
+
+    /* ═══ PREDICTION CARD ═══ */
+    .prediction-card {
+      background: linear-gradient(135deg, rgba(124,77,255,0.1), rgba(0,212,255,0.05));
+      border: 1px solid rgba(124,77,255,0.2);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .prediction-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--purple);
+      background: var(--purple-dim);
+      border: 1px solid rgba(124,77,255,0.2);
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .prediction-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .prediction-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .prediction-item:hover { background: rgba(124,77,255,0.08); border-color: rgba(124,77,255,0.2); }
+
+    .pred-user { font-size: 0.85rem; font-weight: 600; }
+    .pred-reason { font-size: 0.75rem; color: var(--text2); margin-top: 0.15rem; }
+    .pred-chance {
+      font-size: 0.9rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm);
+      background: var(--purple-dim);
+      color: var(--purple);
+    }
+
+    /* SCAN ANIMATION */
+    .radar-wrap {
+      width: 120px; height: 120px;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .radar-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0,212,255,0.15);
+    }
+
+    .radar-sweep {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(0,212,255,0.3) 0deg, transparent 60deg);
+      animation: radarSpin 3s linear infinite;
+    }
+
+    .radar-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    /* ═══ EXPORT ═══ */
+    .export-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+    }
+    .export-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════ -->
+<div id="landing">
+  <div class="landing-bg"></div>
+  <div class="grid-overlay"></div>
+
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span>Sentinel</span><span>AI</span>
+      </div>
+    </a>
+
+    <div class="nav-status">
+      <span class="status-dot"></span>
+      All Systems Operational
+    </div>
+
+    <div class="nav-right">
+      <a href="#features" class="btn btn-ghost">Features</a>
+      <a href="#threat-intel" class="btn btn-ghost">Threat Intel</a>
+      <button class="btn btn-primary" onclick="launchDashboard()" id="launch-btn">
+        🚀 Launch Dashboard
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">
+      🔒 AI-Powered Security • Real-Time Detection
+    </div>
+
+    <h1>
+      Detect Insider Threats<br/>
+      <span class="gradient-text">Before They Strike</span>
+    </h1>
+
+    <p>
+      SentinelAI continuously monitors user behavior, builds intelligent baselines,
+      and triggers real-time alerts when anomalies are detected —
+      powered by Isolation Forest AI. Stop insider threats before they become breaches.
+    </p>
+
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-hero" onclick="launchDashboard()">
+        🛡️ Open SOC Dashboard
+      </button>
+      <a href="#features" class="btn btn-ghost btn-hero">
+        📊 View Features
+      </a>
+    </div>
+
+    <!-- Mini preview -->
+    <div style="max-width: 800px; width: 100%; position: relative;">
+      <div style="background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: 0 40px 80px rgba(0,0,0,0.6);">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem;">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #ff5f57;"></div>
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffbd2e;"></div>
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: #28c840;"></div>
+          <span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text3);">SentinelAI — Threat Monitor</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="background: var(--red-dim); border: 1px solid rgba(255,61,90,0.2); border-radius: var(--radius); padding: 1rem; text-align: center;">
+            <div style="font-size: 1.8rem; font-weight: 900; color: var(--red);" id="mini-crit">3</div>
+            <div style="font-size: 0.7rem; color: var(--text3);">CRITICAL ALERTS</div>
+          </div>
+          <div style="background: var(--yellow-dim); border: 1px solid rgba(255,179,0,0.2); border-radius: var(--radius); padding: 1rem; text-align: center;">
+            <div style="font-size: 1.8rem; font-weight: 900; color: var(--yellow);" id="mini-risk">7</div>
+            <div style="font-size: 0.7rem; color: var(--text3);">HIGH RISK USERS</div>
+          </div>
+          <div style="background: var(--green-dim); border: 1px solid rgba(0,230,118,0.2); border-radius: var(--radius); padding: 1rem; text-align: center;">
+            <div style="font-size: 1.8rem; font-weight: 900; color: var(--green);" id="mini-safe">142</div>
+            <div style="font-size: 0.7rem; color: var(--text3);">USERS MONITORED</div>
+          </div>
+        </div>
+        <div style="background: var(--bg3); border-radius: var(--radius); padding: 0.75rem; border: 1px solid rgba(255,61,90,0.2); display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; animation: glowPulse 1s ease-in-out infinite;"></div>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--red); flex: 1;" id="mini-alert-text">🚨 CRITICAL: User "john.doe" — 4.8GB download in 3 minutes from new device — Risk Score: 94</span>
+        </div>
+      </div>
+      <!-- Glow -->
+      <div style="position: absolute; inset: -1px; border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(124,77,255,0.1)); z-index: -1; filter: blur(20px);"></div>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="threat-ticker">
+    <div class="ticker-inner" id="ticker">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div class="stat-block">
+      <div class="stat-num" data-target="142">0</div>
+      <div class="stat-label">Users Monitored</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num" data-target="98">0</div>
+      <div class="stat-label">Threats Detected Today</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num" data-target="7">0</div>
+      <div class="stat-label">High Risk Users</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num" data-target="99">0</div>
+      <div class="stat-label">Detection Accuracy %</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features-section" id="features">
+    <div class="section-header">
+      <div class="section-tag">Platform Capabilities</div>
+      <h2 class="section-title">Enterprise-Grade Threat Detection</h2>
+      <p class="section-sub">SentinelAI combines machine learning, behavioral analytics, and real-time monitoring to protect your organization from insider threats.</p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature-card" style="--hover-color: rgba(0,212,255,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--primary-dim);">🧠</div>
+        <h3>Isolation Forest AI</h3>
+        <p>Unsupervised ML algorithm detects outliers in user behavior without needing labeled threat data. Learns normal patterns autonomously and flags deviations instantly.</p>
+        <div class="feature-tag" style="background: var(--primary-dim); color: var(--primary);">🤖 ML Engine</div>
+      </div>
+
+      <div class="feature-card" style="--hover-color: rgba(255,61,90,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--red-dim);">⚡</div>
+        <h3>Real-Time Anomaly Detection</h3>
+        <p>Continuous monitoring of login times, file downloads, USB activity, and location data. Alerts trigger within seconds of suspicious behavior being identified.</p>
+        <div class="feature-tag" style="background: var(--red-dim); color: var(--red);">🔴 Live Monitor</div>
+      </div>
+
+      <div class="feature-card" style="--hover-color: rgba(255,179,0,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--yellow-dim);">📊</div>
+        <h3>AI Risk Scoring 0–100</h3>
+        <p>Composite risk scores calculated from login anomalies, download spikes, impossible travel, new device detection, and time-of-access deviations.</p>
+        <div class="feature-tag" style="background: var(--yellow-dim); color: var(--yellow);">📈 Scoring Engine</div>
+      </div>
+
+      <div class="feature-card" style="--hover-color: rgba(124,77,255,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--purple-dim);">🗺️</div>
+        <h3>Impossible Travel Detection</h3>
+        <p>Detects when a user logs in from Bangalore and then Delhi 5 minutes later. Instantly flags location-based impossibilities and generates critical alerts.</p>
+        <div class="feature-tag" style="background: var(--purple-dim); color: var(--purple);">🌍 Geo-Analytics</div>
+      </div>
+
+      <div class="feature-card" style="--hover-color: rgba(0,230,118,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--green-dim);">👤</div>
+        <h3>Behavior Profiling</h3>
+        <p>Builds detailed behavioral baselines per user: typical login windows, usual devices, average daily downloads, accessed file categories, and location patterns.</p>
+        <div class="feature-tag" style="background: var(--green-dim); color: var(--green);">📋 UBA Engine</div>
+      </div>
+
+      <div class="feature-card" style="--hover-color: rgba(255,109,0,0.05);">
+        <div class="feature-icon-wrap" style="background: var(--orange-dim);">💬</div>
+        <h3>GenAI Security Assistant</h3>
+        <p>Chat with an AI analyst. Ask "Why was User A flagged?" and receive a detailed, explainable breakdown of each contributing anomaly factor with severity weights.</p>
+        <div class="feature-tag" style="background: var(--orange-dim); color: var(--orange);">🤖 GenAI</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- THREAT INTEL SECTION -->
+  <div class="features-section" id="threat-intel">
+    <div class="section-header">
+      <div class="section-tag">How It Works</div>
+      <h2 class="section-title">5-Phase Detection Pipeline</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative;">
+      <!-- connector line -->
+      <div style="position: absolute; top: 28px; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, var(--primary), var(--purple), var(--red)); opacity: 0.3;"></div>
+
+      <div style="text-align: center; padding: 1.5rem 1rem; position: relative; z-index: 1;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--primary-dim); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.4rem; box-shadow: 0 0 20px var(--primary-glow);">📡</div>
+        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Data Collection</div>
+        <div style="font-size: 0.75rem; color: var(--text2);">Logs, logins, downloads, USB, IP, location</div>
+      </div>
+
+      <div style="text-align: center; padding: 1.5rem 1rem; position: relative; z-index: 1;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(100,200,255,0.1); border: 2px solid rgba(100,200,255,0.5); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.4rem;">👤</div>
+        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Profiling</div>
+        <div style="font-size: 0.75rem; color: var(--text2);">Build normal behavior baseline per user</div>
+      </div>
+
+      <div style="text-align: center; padding: 1.5rem 1rem; position: relative; z-index: 1;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--yellow-dim); border: 2px solid var(--yellow); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.4rem;">🤖</div>
+        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">AI Detection</div>
+        <div style="font-size: 0.75rem; color: var(--text2);">Isolation Forest finds anomalies</div>
+      </div>
+
+      <div style="text-align: center; padding: 1.5rem 1rem; position: relative; z-index: 1;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--orange-dim); border: 2px solid var(--orange); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.4rem;">📈</div>
+        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Risk Scoring</div>
+        <div style="font-size: 0.75rem; color: var(--text2);">0–100 composite risk score generated</div>
+      </div>
+
+      <div style="text-align: center; padding: 1.5rem 1rem; position: relative; z-index: 1;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--red-dim); border: 2px solid var(--red); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.4rem; box-shadow: 0 0 20px rgba(255,61,90,0.3);">🚨</div>
+        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.5rem;">Alert & Report</div>
+        <div style="font-size: 0.75rem; color: var(--text2);">SOC dashboard + admin notifications</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="padding: 4rem 2rem; text-align: center; border-top: 1px solid var(--border); background: var(--surface);">
+    <div style="max-width: 560px; margin: 0 auto;">
+      <div class="radar-wrap" style="margin-bottom: 2rem;">
+        <div class="radar-circle" style="inset: 0;"></div>
+        <div class="radar-circle" style="inset: 15px;"></div>
+        <div class="radar-circle" style="inset: 30px;"></div>
+        <div class="radar-circle" style="inset: 45px;"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-dot" style="width: 8px; height: 8px; top: 30px; left: 80px;"></div>
+        <div class="radar-dot" style="width: 6px; height: 6px; bottom: 25px; right: 20px; background: var(--red); box-shadow: 0 0 6px var(--red);"></div>
+        <div class="radar-dot" style="width: 6px; height: 6px; top: 60px; right: 35px; background: var(--yellow); box-shadow: 0 0 6px var(--yellow);"></div>
+      </div>
+      <h2 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem;">Your SOC Dashboard Awaits</h2>
+      <p style="color: var(--text2); margin-bottom: 2rem; line-height: 1.7;">142 users being monitored right now. 3 critical alerts pending review. Launch the dashboard to take control.</p>
+      <button class="btn btn-primary btn-hero" onclick="launchDashboard()" style="font-size: 1.05rem; padding: 1rem 2.5rem; box-shadow: 0 8px 32px rgba(0,212,255,0.4);">
+        🛡️ Launch SentinelAI Dashboard
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════
+     DASHBOARD
+══════════════════════════════════ -->
+<div id="dashboard">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon" style="width: 32px; height: 32px; border-radius: 8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="logo-text" style="font-size: 1rem;">
+          <span>Sentinel</span><span>AI</span>
+        </div>
+        <div style="margin-left: auto; cursor: pointer; color: var(--text3); font-size: 1.2rem;" onclick="exitDashboard()">✕</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Main</div>
+        <div class="sidebar-nav">
+          <button class="nav-item active" onclick="showPage('overview', this)" id="nav-overview">
+            <span class="nav-icon">🏠</span> Overview
+          </button>
+          <button class="nav-item" onclick="showPage('threats', this)" id="nav-threats">
+            <span class="nav-icon">🚨</span> Live Alerts
+            <span class="nav-badge" id="alert-badge">3</span>
+          </button>
+          <button class="nav-item" onclick="showPage('users', this)" id="nav-users">
+            <span class="nav-icon">👥</span> User Analytics
+          </button>
+          <button class="nav-item" onclick="showPage('riskmap', this)" id="nav-riskmap">
+            <span class="nav-icon">🗺️</span> Threat Map
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Analysis</div>
+        <div class="sidebar-nav">
+          <button class="nav-item" onclick="showPage('riskscorer', this)" id="nav-riskscorer">
+            <span class="nav-icon">📈</span> Risk Scorer
+          </button>
+          <button class="nav-item" onclick="showPage('anomalylog', this)" id="nav-anomalylog">
+            <span class="nav-icon">📋</span> Anomaly Log
+          </button>
+          <button class="nav-item" onclick="showPage('predictions', this)" id="nav-predictions">
+            <span class="nav-icon">🔮</span> Predictions
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">AI Tools</div>
+        <div class="sidebar-nav">
+          <button class="nav-item" onclick="showPage('assistant', this)" id="nav-assistant">
+            <span class="nav-icon">🤖</span> AI Assistant
+          </button>
+          <button class="nav-item" onclick="showPage('reports', this)" id="nav-reports">
+            <span class="nav-icon">📄</span> Reports
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar">AD</div>
+          <div class="user-info">
+            <div class="user-name">Admin User</div>
+            <div class="user-role">SOC Analyst — Level 3</div>
+          </div>
+          <span style="color: var(--text3);">⚙️</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-title" id="page-title">Security Overview</div>
+          <div class="topbar-sub" id="page-sub">Real-time threat intelligence dashboard</div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-time" id="live-time">14:02:27</div>
+          <div class="icon-btn" title="Notifications" onclick="showPage('threats', document.getElementById('nav-threats'))">
+            🔔
+            <div class="notif-dot"></div>
+          </div>
+          <div class="icon-btn" title="Settings">⚙️</div>
+          <button class="btn btn-ghost" style="font-size: 0.8rem; padding: 0.45rem 0.9rem;" onclick="exitDashboard()">← Home</button>
+        </div>
+      </div>
+
+      <!-- ── OVERVIEW PAGE ── -->
+      <div class="page active" id="page-overview">
+        <!-- KPI GRID -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-accent" style="background: linear-gradient(90deg, var(--primary), transparent);"></div>
+            <div class="kpi-header">
+              <div class="kpi-icon" style="background: var(--primary-dim);">🛡️</div>
+              <div class="kpi-trend neutral">● Active</div>
+            </div>
+            <div class="kpi-value" style="color: var(--primary);" data-count="142">142</div>
+            <div class="kpi-label">Users Monitored</div>
+            <div class="kpi-sub">+8 since yesterday</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-accent" style="background: linear-gradient(90deg, var(--red), transparent);"></div>
+            <div class="kpi-header">
+              <div class="kpi-icon" style="background: var(--red-dim);">🚨</div>
+              <div class="kpi-trend up">↑ +2</div>
+            </div>
+            <div class="kpi-value" style="color: var(--red);" id="kpi-threats">3</div>
+            <div class="kpi-label">Critical Threats</div>
+            <div class="kpi-sub">Pending review</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-accent" style="background: linear-gradient(90deg, var(--yellow), transparent);"></div>
+            <div class="kpi-header">
+              <div class="kpi-icon" style="background: var(--yellow-dim);">⚠️</div>
+              <div class="kpi-trend up">↑ +3</div>
+            </div>
+            <div class="kpi-value" style="color: var(--yellow);" id="kpi-highrisk">7</div>
+            <div class="kpi-label">High-Risk Users</div>
+            <div class="kpi-sub">Score above 60</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-accent" style="background: linear-gradient(90deg, var(--green), transparent);"></div>
+            <div class="kpi-header">
+              <div class="kpi-icon" style="background: var(--green-dim);">✅</div>
+              <div class="kpi-trend down">↑ 99.2%</div>
+            </div>
+            <div class="kpi-value" style="color: var(--green);">99%</div>
+            <div class="kpi-label">Detection Accuracy</div>
+            <div class="kpi-sub">Isolation Forest model</div>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW 1 -->
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Login Activity Timeline</div>
+                <div class="chart-sub">Hourly login events (last 24 hours)</div>
+              </div>
+              <select class="chart-select" onchange="updateLoginChart(this.value)">
+                <option value="24h">24 Hours</option>
+                <option value="7d">7 Days</option>
+                <option value="30d">30 Days</option>
+              </select>
+            </div>
+            <div class="chart-body">
+              <canvas id="loginChart" height="200"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Risk Distribution</div>
+                <div class="chart-sub">Users by threat level</div>
+              </div>
+            </div>
+            <div class="chart-body" style="display: flex; align-items: center; gap: 1.5rem; margin-top: 0.5rem;">
+              <div style="flex: 0 0 160px;">
+                <canvas id="riskDonut" height="160"></canvas>
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div class="flex items-center gap-3">
+                  <div style="width: 12px; height: 12px; border-radius: 3px; background: var(--green); flex-shrink: 0;"></div>
+                  <span style="font-size: 0.8rem; color: var(--text2); flex: 1;">Safe (0–30)</span>
+                  <span style="font-size: 0.85rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">118</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div style="width: 12px; height: 12px; border-radius: 3px; background: var(--yellow); flex-shrink: 0;"></div>
+                  <span style="font-size: 0.8rem; color: var(--text2); flex: 1;">Medium (31–60)</span>
+                  <span style="font-size: 0.85rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">17</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div style="width: 12px; height: 12px; border-radius: 3px; background: var(--orange); flex-shrink: 0;"></div>
+                  <span style="font-size: 0.8rem; color: var(--text2); flex: 1;">High (61–80)</span>
+                  <span style="font-size: 0.85rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">4</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div style="width: 12px; height: 12px; border-radius: 3px; background: var(--red); flex-shrink: 0;"></div>
+                  <span style="font-size: 0.8rem; color: var(--text2); flex: 1;">Critical (81–100)</span>
+                  <span style="font-size: 0.85rem; font-weight: 700; font-family: 'JetBrains Mono', monospace;">3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS ROW 2 -->
+        <div class="chart-grid-3">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Download Activity (MB/day)</div>
+                <div class="chart-sub">Anomalous spikes highlighted in red</div>
+              </div>
+              <button class="export-btn">📤 Export</button>
+            </div>
+            <canvas id="downloadChart" height="200"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Department Risk</div>
+                <div class="chart-sub">Avg risk score by department</div>
+              </div>
+            </div>
+            <div class="dept-list" style="margin-top: 0.5rem;">
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">Finance</span>
+                  <span class="dept-score" style="color: var(--red);">78</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 78%; background: var(--red);"></div></div>
+              </div>
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">Engineering</span>
+                  <span class="dept-score" style="color: var(--orange);">63</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 63%; background: var(--orange);"></div></div>
+              </div>
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">HR</span>
+                  <span class="dept-score" style="color: var(--yellow);">45</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 45%; background: var(--yellow);"></div></div>
+              </div>
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">Operations</span>
+                  <span class="dept-score" style="color: var(--yellow);">38</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 38%; background: var(--yellow);"></div></div>
+              </div>
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">Marketing</span>
+                  <span class="dept-score" style="color: var(--green);">22</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 22%; background: var(--green);"></div></div>
+              </div>
+              <div class="dept-item">
+                <div class="dept-header">
+                  <span class="dept-name">Legal</span>
+                  <span class="dept-score" style="color: var(--green);">18</span>
+                </div>
+                <div class="dept-bar"><div class="dept-bar-fill" style="width: 18%; background: var(--green);"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTS PANEL -->
+        <div class="alerts-panel">
+          <div class="alerts-header">
+            <div class="alerts-title">
+              🚨 Live Alerts
+              <span class="alerts-count" id="live-alert-count">3</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="export-btn">📤 Export</button>
+              <button class="export-btn" onclick="showPage('threats', document.getElementById('nav-threats'))">View All →</button>
+            </div>
+          </div>
+          <div id="overview-alerts">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THREATS PAGE ── -->
+      <div class="page" id="page-threats">
+        <div class="chart-card" style="margin-bottom: 1rem;">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Alert Severity Timeline</div>
+              <div class="chart-sub">Alerts by severity level over time</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="export-btn" onclick="addNewAlert()">+ Simulate Alert</button>
+              <button class="export-btn">📤 Export Report</button>
+            </div>
+          </div>
+          <canvas id="alertTimeline" height="120"></canvas>
+        </div>
+
+        <div id="full-alerts-panel">
+          <div class="alerts-panel">
+            <div class="alerts-header">
+              <div class="alerts-title">
+                🚨 All Incidents
+                <span class="alerts-count" id="all-alert-count">3</span>
+              </div>
+              <div class="flex gap-2">
+                <select class="chart-select" onchange="filterAlerts(this.value)">
+                  <option value="all">All Severity</option>
+                  <option value="critical">Critical Only</option>
+                  <option value="high">High Only</option>
+                  <option value="medium">Medium Only</option>
+                </select>
+              </div>
+            </div>
+            <div id="all-alerts-list">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── USERS PAGE ── -->
+      <div class="page" id="page-users">
+        <div class="chart-grid" style="margin-bottom: 1.5rem;">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Weekly Risk Trends</div>
+            </div>
+            <canvas id="weeklyRisk" height="200"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Anomaly Type Breakdown</div>
+            </div>
+            <canvas id="anomalyTypes" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div style="font-size: 0.9rem; font-weight: 700;">👥 User Risk Registry</div>
+            <div class="flex gap-2">
+              <div class="search-input">
+                🔍 <input type="text" placeholder="Search users..." oninput="filterUsers(this.value)" id="user-search" />
+              </div>
+              <select class="chart-select" onchange="sortUsers(this.value)">
+                <option value="risk-desc">Risk: High → Low</option>
+                <option value="risk-asc">Risk: Low → High</option>
+                <option value="name">Name A → Z</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table id="user-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Department</th>
+                  <th>Last Login</th>
+                  <th>Location</th>
+                  <th>Device</th>
+                  <th>Downloads</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="user-tbody">
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THREAT MAP PAGE ── -->
+      <div class="page" id="page-riskmap">
+        <div class="threat-map">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">🌍 Global Threat Map</div>
+              <div class="chart-sub">Active login locations and anomaly detections</div>
+            </div>
+            <div class="flex gap-2 items-center">
+              <span style="font-size: 0.72rem; color: var(--text3);">● Safe</span>
+              <span style="font-size: 0.72rem; color: var(--yellow);">● Medium</span>
+              <span style="font-size: 0.72rem; color: var(--red);">● Critical</span>
+            </div>
+          </div>
+          <div class="world-map-wrap">
+            <div class="map-grid-lines"></div>
+            <!-- Map dots placed by JS -->
+            <div id="map-dots-container"></div>
+            <!-- Impossible travel line -->
+            <svg style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;" id="travel-svg">
+            </svg>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Login Locations (Last 24h)</div>
+            </div>
+            <canvas id="locationChart" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Impossible Travel Events</div>
+            </div>
+            <div style="padding: 1rem 0; display: flex; flex-direction: column; gap: 0.85rem;">
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.85rem; background: var(--red-dim); border: 1px solid rgba(255,61,90,0.2); border-radius: var(--radius);">
+                <span style="font-size: 1.2rem;">✈️</span>
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--red);">john.doe — CRITICAL</div>
+                  <div style="font-size: 0.72rem; color: var(--text2);">Mumbai → New York in 4 minutes</div>
+                  <div style="font-size: 0.68rem; color: var(--text3);">14:02:01 — Risk +35 points</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.85rem; background: var(--orange-dim); border: 1px solid rgba(255,109,0,0.2); border-radius: var(--radius);">
+                <span style="font-size: 1.2rem;">✈️</span>
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--orange);">sarah.chen — HIGH</div>
+                  <div style="font-size: 0.72rem; color: var(--text2);">Bangalore → Singapore in 12 minutes</div>
+                  <div style="font-size: 0.68rem; color: var(--text3);">11:34:22 — Risk +22 points</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.85rem; background: var(--yellow-dim); border: 1px solid rgba(255,179,0,0.2); border-radius: var(--radius);">
+                <span style="font-size: 1.2rem;">✈️</span>
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--yellow);">raj.kumar — MEDIUM</div>
+                  <div style="font-size: 0.72rem; color: var(--text2);">Delhi → Chennai in 28 minutes</div>
+                  <div style="font-size: 0.68rem; color: var(--text3);">09:12:05 — Risk +14 points</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RISK SCORER PAGE ── -->
+      <div class="page" id="page-riskscorer">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="risk-score-card">
+            <div class="chart-header" style="margin-bottom: 0;">
+              <div>
+                <div class="chart-title">AI Risk Calculator</div>
+                <div class="chart-sub">Select a user to analyze</div>
+              </div>
+              <select class="chart-select" onchange="updateRiskScore(this.value)" id="risk-user-select">
+                <option value="john">John Doe — 94</option>
+                <option value="sarah">Sarah Chen — 72</option>
+                <option value="raj">Raj Kumar — 61</option>
+                <option value="alex">Alex Brown — 45</option>
+                <option value="priya">Priya Sharma — 28</option>
+              </select>
+            </div>
+
+            <div class="risk-gauge-wrap">
+              <svg class="risk-gauge-svg" viewBox="0 0 200 110">
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color: var(--green);" />
+                    <stop offset="40%" style="stop-color: var(--yellow);" />
+                    <stop offset="70%" style="stop-color: var(--orange);" />
+                    <stop offset="100%" style="stop-color: var(--red);" />
+                  </linearGradient>
+                </defs>
+                <!-- Background arc -->
+                <path d="M 15 105 A 85 85 0 0 1 185 105" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="16" stroke-linecap="round"/>
+                <!-- Colored arc -->
+                <path id="gauge-arc" d="M 15 105 A 85 85 0 0 1 185 105" fill="none" stroke="url(#gaugeGrad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="0"/>
+                <!-- Needle -->
+                <line id="gauge-needle" x1="100" y1="105" x2="100" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="100" cy="105" r="5" fill="white"/>
+              </svg>
+              <div class="risk-gauge-value">
+                <div class="risk-gauge-num" id="gauge-num" style="color: var(--red);">94</div>
+                <div class="risk-gauge-label">CRITICAL RISK</div>
+              </div>
+            </div>
+
+            <div class="risk-factors" id="risk-factors">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Risk Score History</div>
+            </div>
+            <canvas id="riskHistory" height="250"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">🤖 AI Explainability Report</div>
+            <div style="font-size: 0.72rem; color: var(--purple); background: var(--purple-dim); padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid rgba(124,77,255,0.2);">Isolation Forest Output</div>
+          </div>
+          <div id="ai-explain-panel" style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ANOMALY LOG PAGE ── -->
+      <div class="page" id="page-anomalylog">
+        <div class="chart-card" style="margin-bottom: 1.5rem;">
+          <div class="chart-header">
+            <div class="chart-title">Real-Time Event Stream</div>
+          </div>
+          <canvas id="eventStream" height="120"></canvas>
+        </div>
+
+        <div class="anomaly-log" style="border-radius: var(--radius-lg);">
+          <div class="alerts-header">
+            <div class="alerts-title">📋 Anomaly Event Log</div>
+            <div class="flex gap-2">
+              <button class="export-btn" onclick="generateLog()">⟳ Refresh</button>
+              <button class="export-btn">📤 Export CSV</button>
+            </div>
+          </div>
+          <div id="anomaly-log-body">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PREDICTIONS PAGE ── -->
+      <div class="page" id="page-predictions">
+        <div class="prediction-card">
+          <div class="prediction-header">
+            <span style="font-size: 1.5rem;">🔮</span>
+            <div>
+              <div style="font-weight: 700; margin-bottom: 0.2rem;">AI Threat Predictions — Next 7 Days</div>
+              <div style="font-size: 0.75rem; color: var(--text2);">Based on behavioral trajectory and historical anomaly patterns</div>
+            </div>
+            <div class="ai-badge" style="margin-left: auto;">🤖 AI Powered</div>
+          </div>
+          <div class="prediction-list">
+            <div class="prediction-item" onclick="openModal('pred-john')">
+              <div>
+                <div class="pred-user">👤 John Doe — Finance Dept</div>
+                <div class="pred-reason">3 late-night logins, 2 new device alerts, excessive downloads trending up</div>
+              </div>
+              <div class="pred-chance">78% →</div>
+            </div>
+            <div class="prediction-item" onclick="openModal('pred-sarah')">
+              <div>
+                <div class="pred-user">👤 Sarah Chen — Engineering</div>
+                <div class="pred-reason">Impossible travel event, unrecognized IP cluster, weekend access pattern</div>
+              </div>
+              <div class="pred-chance" style="background: var(--orange-dim); color: var(--orange);">61% →</div>
+            </div>
+            <div class="prediction-item">
+              <div>
+                <div class="pred-user">👤 Raj Kumar — IT Dept</div>
+                <div class="pred-reason">Elevated USB activity, access to restricted directories escalating</div>
+              </div>
+              <div class="pred-chance" style="background: var(--yellow-dim); color: var(--yellow);">44% →</div>
+            </div>
+            <div class="prediction-item">
+              <div>
+                <div class="pred-user">👤 Marcus Lee — Operations</div>
+                <div class="pred-reason">Unusual application usage, login from new city twice this week</div>
+              </div>
+              <div class="pred-chance" style="background: var(--yellow-dim); color: var(--yellow);">37% →</div>
+            </div>
+            <div class="prediction-item">
+              <div>
+                <div class="pred-user">👤 Aisha Patel — Legal</div>
+                <div class="pred-reason">Accessing employee records outside normal working hours (3× this week)</div>
+              </div>
+              <div class="pred-chance" style="background: rgba(90,115,148,0.15); color: var(--text2);">22% →</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Predicted Threat Escalation</div>
+            </div>
+            <canvas id="predictionChart" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Risk Trajectory — Top Users</div>
+            </div>
+            <canvas id="trajectoryChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI ASSISTANT PAGE ── -->
+      <div class="page" id="page-assistant">
+        <div class="ai-chat-wrap">
+          <div class="chat-card">
+            <div class="chat-header">
+              <div class="ai-avatar">🤖</div>
+              <div>
+                <div style="font-weight: 700;">SentinelAI Security Analyst</div>
+                <div style="font-size: 0.75rem; color: var(--green);">● Online — Analyzing 142 users</div>
+              </div>
+              <div style="margin-left: auto; font-size: 0.72rem; color: var(--text3); background: var(--purple-dim); padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid rgba(124,77,255,0.2); color: var(--purple);">GenAI • Isolation Forest</div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+              <div class="msg ai">
+                <div class="msg-avatar">🤖</div>
+                <div class="msg-bubble">
+                  Hello! I'm <strong>SentinelAI</strong>, your intelligent security analyst. I monitor all 142 users in real-time and can explain any threat, anomaly, or risk score.<br/><br/>
+                  🚨 <strong>Current Critical Alert:</strong> User <code>john.doe</code> has a risk score of <strong>94/100</strong> due to a 4.8GB download spike, impossible travel, and 3 AM login.<br/><br/>
+                  Ask me anything about your security posture!
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-wrap">
+              <input class="chat-input" id="chat-input" type="text" placeholder="Ask about a user, threat, or anomaly..." onkeydown="if(event.key==='Enter') sendChat()" />
+              <button class="chat-send" onclick="sendChat()">➤</button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="quick-queries">
+              <div class="query-title">💡 Quick Queries</div>
+              <button class="quick-btn" onclick="quickAsk('Why was john.doe flagged?')">🔴 Why was john.doe flagged?</button>
+              <button class="quick-btn" onclick="quickAsk('Show me all critical alerts')">🚨 Show all critical alerts</button>
+              <button class="quick-btn" onclick="quickAsk('What is the risk score for sarah.chen?')">📊 Risk score for sarah.chen</button>
+              <button class="quick-btn" onclick="quickAsk('Explain impossible travel detection')">✈️ Explain impossible travel</button>
+              <button class="quick-btn" onclick="quickAsk('Which department is highest risk?')">🏢 Highest risk department?</button>
+              <button class="quick-btn" onclick="quickAsk('Predict threats for next 7 days')">🔮 Predict next 7 days</button>
+              <button class="quick-btn" onclick="quickAsk('How does Isolation Forest work?')">🤖 How does Isolation Forest work?</button>
+              <button class="quick-btn" onclick="quickAsk('What are the top 3 threats right now?')">⚡ Top 3 threats right now?</button>
+            </div>
+
+            <div class="chart-card" style="flex: 1;">
+              <div class="chart-header">
+                <div class="chart-title">📊 Live Stats</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 0.78rem; color: var(--text2);">Queries Processed</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--primary);" id="query-count">0</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 0.78rem; color: var(--text2);">Anomalies Explained</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--yellow);" id="explained-count">0</span>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 0.78rem; color: var(--text2);">Model Confidence</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--green);">99.2%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORTS PAGE ── -->
+      <div class="page" id="page-reports">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="chart-card" style="cursor: pointer; transition: var(--transition);" onclick="downloadReport('daily')" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📊</div>
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">Daily Threat Report</div>
+            <div style="font-size: 0.8rem; color: var(--text2); margin-bottom: 1rem;">Summary of all anomalies, alerts, and risk changes in the past 24 hours.</div>
+            <div class="export-btn" style="display: inline-flex;">📥 Download PDF</div>
+          </div>
+          <div class="chart-card" style="cursor: pointer; transition: var(--transition);" onclick="downloadReport('weekly')" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📈</div>
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">Weekly Trend Report</div>
+            <div style="font-size: 0.8rem; color: var(--text2); margin-bottom: 1rem;">7-day risk trends, top risky users, and behavioral shifts across departments.</div>
+            <div class="export-btn" style="display: inline-flex;">📥 Download PDF</div>
+          </div>
+          <div class="chart-card" style="cursor: pointer; transition: var(--transition);" onclick="downloadReport('incident')" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">🚨</div>
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">Incident Report</div>
+            <div style="font-size: 0.8rem; color: var(--text2); margin-bottom: 1rem;">Detailed forensic breakdown of each critical incident with timeline and evidence.</div>
+            <div class="export-btn" style="display: inline-flex;">📥 Download PDF</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Monthly Threat Overview</div>
+            </div>
+            <canvas id="monthlyChart" height="220"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Top Risky Users This Month</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem;">
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--red), #c00);">JD</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.83rem; font-weight: 700;">John Doe</div>
+                  <div style="font-size: 0.7rem; color: var(--text2);">Finance • 23 alerts this month</div>
+                </div>
+                <div class="badge critical">94</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--orange), #c05000);">SC</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.83rem; font-weight: 700;">Sarah Chen</div>
+                  <div style="font-size: 0.7rem; color: var(--text2);">Engineering • 14 alerts</div>
+                </div>
+                <div class="badge high">72</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--yellow), #9a7000);">RK</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.83rem; font-weight: 700;">Raj Kumar</div>
+                  <div style="font-size: 0.7rem; color: var(--text2);">IT Dept • 9 alerts</div>
+                </div>
+                <div class="badge medium">61</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--primary), #005a8a);">AB</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.83rem; font-weight: 700;">Alex Brown</div>
+                  <div style="font-size: 0.7rem; color: var(--text2);">Operations • 5 alerts</div>
+                </div>
+                <div class="badge medium">45</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm" style="background: linear-gradient(135deg, var(--green), #006635);">PS</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 0.83rem; font-weight: 700;">Priya Sharma</div>
+                  <div style="font-size: 0.7rem; color: var(--text2);">HR Dept • 2 alerts</div>
+                </div>
+                <div class="badge safe">28</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Incident Details</div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ════════════════════════════════════════
+//   DATA LAYER
+// ════════════════════════════════════════
+
+const USERS = [
+  { id: 'john', name: 'John Doe', initials: 'JD', dept: 'Finance', loginTime: '03:14 AM', location: 'New York', device: 'Unknown Device', downloads: '4.8 GB', risk: 94, status: 'critical', color: '#ff3d5a', lastSeen: '14:02', anomalies: ['Impossible travel', 'Late-night login', 'Mass download', 'New device'] },
+  { id: 'sarah', name: 'Sarah Chen', initials: 'SC', dept: 'Engineering', loginTime: '11:22 PM', location: 'Singapore', device: 'Personal Laptop', downloads: '1.2 GB', risk: 72, status: 'high', color: '#ff6d00', lastSeen: '11:35', anomalies: ['Impossible travel', 'After-hours access', 'Unusual device'] },
+  { id: 'raj', name: 'Raj Kumar', initials: 'RK', dept: 'IT', loginTime: '07:15 AM', location: 'Chennai', device: 'USB Attached', downloads: '450 MB', risk: 61, status: 'high', color: '#ffb300', lastSeen: '09:18', anomalies: ['USB activity', 'Restricted directory access'] },
+  { id: 'alex', name: 'Alex Brown', initials: 'AB', dept: 'Operations', loginTime: '09:02 AM', location: 'London', device: 'Work Laptop', downloads: '85 MB', risk: 45, status: 'medium', color: '#00d4ff', lastSeen: '13:50', anomalies: ['New city login'] },
+  { id: 'priya', name: 'Priya Sharma', initials: 'PS', dept: 'HR', loginTime: '09:30 AM', location: 'Bangalore', device: 'Work Desktop', downloads: '12 MB', risk: 28, status: 'safe', color: '#00e676', lastSeen: '13:00', anomalies: [] },
+  { id: 'marcus', name: 'Marcus Lee', initials: 'ML', dept: 'Operations', loginTime: '08:45 AM', location: 'Tokyo', device: 'Work Laptop', downloads: '125 MB', risk: 38, status: 'medium', color: '#ffb300', lastSeen: '12:30', anomalies: ['New city login', 'Unusual app usage'] },
+  { id: 'aisha', name: 'Aisha Patel', initials: 'AP', dept: 'Legal', loginTime: '02:45 AM', location: 'Delhi', device: 'Work Laptop', downloads: '230 MB', risk: 55, status: 'medium', color: '#ff6d00', lastSeen: '02:55', anomalies: ['Late-night access', 'Employee record access'] },
+  { id: 'tom', name: 'Tom Wilson', initials: 'TW', dept: 'Marketing', loginTime: '09:10 AM', location: 'Sydney', device: 'Work Laptop', downloads: '22 MB', risk: 12, status: 'safe', color: '#00e676', lastSeen: '13:45', anomalies: [] },
+];
+
+const ALERTS = [
+  { id: 1, user: 'John Doe', userId: 'john', severity: 'critical', risk: 94, time: '14:02:01', reason: 'Impossible travel (Mumbai → New York in 4 min). Mass file download of 4.8GB. Unknown device. Login at 3:14 AM.', icon: '🚨' },
+  { id: 2, user: 'Sarah Chen', userId: 'sarah', severity: 'high', risk: 72, time: '11:34:22', reason: 'Impossible travel (Bangalore → Singapore in 12 min). Personal laptop usage. After-hours login at 11:22 PM.', icon: '⚠️' },
+  { id: 3, user: 'Raj Kumar', userId: 'raj', severity: 'high', risk: 61, time: '09:12:05', reason: 'USB device detected with 450MB transfer. Access to restricted directory /finance/payroll detected.', icon: '⚠️' },
+  { id: 4, user: 'Aisha Patel', userId: 'aisha', severity: 'medium', risk: 55, time: '02:45:33', reason: 'Login at 2:45 AM — 4.75 hours outside normal window (9AM–6PM). Accessed employee records 3×.', icon: '🔔' },
+  { id: 5, user: 'Alex Brown', userId: 'alex', severity: 'medium', risk: 45, time: '08:55:10', reason: 'Login from London — new city. Previous location: New York. Moderate deviation from baseline.', icon: '🔔' },
+];
+
+const RISK_DATA = {
+  john:  { score: 94, label: 'CRITICAL RISK', color: '#ff3d5a', factors: [
+    { name: 'Login Time Anomaly', score: 28, max: 30 },
+    { name: 'Download Volume', score: 25, max: 25 },
+    { name: 'Impossible Travel', score: 22, max: 25 },
+    { name: 'Unknown Device', score: 15, max: 15 },
+    { name: 'Location Deviation', score: 4, max: 5 },
+  ], explain: [
+    { icon: '🕐', title: 'Unusual Login Time', detail: 'Logged in at 3:14 AM — 6.25 hours outside normal baseline (9AM–6PM). Contributes +28 risk points.', severity: 'critical' },
+    { icon: '📁', title: 'Massive File Download', detail: 'Downloaded 4.8GB in 3 minutes. Normal daily average is 22MB. Anomaly score: 218× baseline.', severity: 'critical' },
+    { icon: '✈️', title: 'Impossible Travel', detail: 'Logged in from Mumbai at 3:10 AM, then New York at 3:14 AM. Physically impossible in 4 minutes.', severity: 'critical' },
+    { icon: '💻', title: 'Unknown Device', detail: 'Device fingerprint not in registry. MAC address 00:1B:44:11:3A:B7 seen for first time.', severity: 'high' },
+  ]},
+  sarah: { score: 72, label: 'HIGH RISK', color: '#ff6d00', factors: [
+    { name: 'Impossible Travel', score: 22, max: 25 },
+    { name: 'After-Hours Access', score: 20, max: 25 },
+    { name: 'Personal Device', score: 12, max: 15 },
+    { name: 'Download Spike', score: 12, max: 25 },
+    { name: 'Location Deviation', score: 6, max: 10 },
+  ], explain: [
+    { icon: '✈️', title: 'Impossible Travel', detail: 'Bangalore login at 11:22 PM, then Singapore 12 minutes later. Travel time: ~3.5 hours.', severity: 'critical' },
+    { icon: '🌙', title: 'After-Hours Login', detail: 'Login at 11:22 PM — 5.37 hours after normal work end. 4th consecutive late login this week.', severity: 'high' },
+    { icon: '💻', title: 'Personal Device', detail: 'Logged in from personal laptop (not corporate registered). Policy violation detected.', severity: 'medium' },
+  ]},
+  raj:   { score: 61, label: 'HIGH RISK', color: '#ffb300', factors: [
+    { name: 'USB Activity', score: 20, max: 25 },
+    { name: 'Restricted Access', score: 18, max: 25 },
+    { name: 'Bulk Copy', score: 15, max: 25 },
+    { name: 'Early Login', score: 5, max: 15 },
+    { name: 'Location Shift', score: 3, max: 10 },
+  ], explain: [
+    { icon: '🔌', title: 'USB Device Detected', detail: '450MB transferred to external USB drive in 8 minutes. 1,240 files copied.', severity: 'high' },
+    { icon: '🔒', title: 'Restricted Directory Access', detail: 'Accessed /finance/payroll — outside authorized role scope. Access denied after 2 attempts.', severity: 'high' },
+  ]},
+  alex:  { score: 45, label: 'MEDIUM RISK', color: '#ff6d00', factors: [
+    { name: 'New City Login', score: 18, max: 25 },
+    { name: 'Download Increase', score: 12, max: 25 },
+    { name: 'Login Time Shift', score: 10, max: 25 },
+    { name: 'Device OK', score: 0, max: 15 },
+    { name: 'Location', score: 5, max: 10 },
+  ], explain: [
+    { icon: '🌍', title: 'New City Login', detail: 'Logged in from London — first time in 6 months. Previous location: New York.', severity: 'medium' },
+    { icon: '📊', title: 'Moderate Download Spike', detail: '85MB vs 40MB daily average. 2.1× normal but below alert threshold.', severity: 'low' },
+  ]},
+  priya: { score: 28, label: 'LOW RISK', color: '#00e676', factors: [
+    { name: 'Login Time OK', score: 0, max: 30 },
+    { name: 'Downloads Normal', score: 2, max: 25 },
+    { name: 'Known Device', score: 0, max: 15 },
+    { name: 'Usual Location', score: 0, max: 25 },
+    { name: 'Minor Anomaly', score: 26, max: 5 },
+  ], explain: [
+    { icon: '✅', title: 'Behavior Within Baseline', detail: 'All activity parameters within 1.2σ of normal. No significant deviations detected.', severity: 'low' },
+  ]},
+};
+
+const AI_RESPONSES = {
+  'john.doe': `🔍 **Analysis for john.doe (Risk Score: 94/100 — CRITICAL)**\n\nUser flagged due to **4 concurrent anomalies** detected by the Isolation Forest model:\n\n• 🕐 **Login at 3:14 AM** — 6.25 hours outside baseline window (9AM–6PM). Contributes +28 risk.\n• 📁 **4.8GB download in 3 minutes** — 218× normal average of 22MB. Contributes +25 risk.\n• ✈️ **Impossible travel** — Mumbai → New York in 4 minutes. Physically impossible. +22 risk.\n• 💻 **Unknown device** — MAC address never seen before. +15 risk.\n\n**Total: 94/100 — Recommend immediate investigation.**`,
+  
+  'critical': `🚨 **Critical Alerts (3 Active)**\n\n1. **john.doe** (94) — Mass download + impossible travel + unknown device + 3AM login\n2. **sarah.chen** (72) — Impossible travel Bangalore→Singapore + after-hours + personal device\n3. **raj.kumar** (61) — USB 450MB transfer + restricted directory access\n\nAll three require immediate SOC review and possible account suspension.`,
+
+  'sarah.chen': `📊 **Risk Score for sarah.chen: 72/100 — HIGH RISK**\n\nKey anomalies detected:\n• ✈️ Impossible travel: Bangalore → Singapore in 12 minutes\n• 🌙 4th consecutive late-night login (11:22 PM)\n• 💻 Personal laptop usage (policy violation)\n• 📁 1.2GB download — 40× daily baseline\n\nRecommend: Force MFA re-verification, flag for manager review.`,
+
+  'impossible travel': `✈️ **Impossible Travel Detection — How It Works**\n\nSentinelAI calculates the **minimum travel time** between two consecutive login locations using great-circle distance ÷ max aircraft speed.\n\nIf elapsed time < minimum travel time → **IMPOSSIBLE TRAVEL ALERT** 🚨\n\n**Example:**\n• User logs in from Mumbai (19.0760°N, 72.8777°E)\n• 4 minutes later: logs in from New York (40.7128°N, 74.0060°W)\n• Distance: ~12,553 km\n• Min travel time: ~14 hours\n• Elapsed: 4 minutes → **IMPOSSIBLE**\n\nThis typically indicates either credential theft or VPN/proxy manipulation.`,
+
+  'department': `🏢 **Department Risk Analysis**\n\n| Rank | Department | Avg Risk | Status |\n|------|-----------|----------|--------|\n| 1 | Finance | 78 | 🔴 Critical |\n| 2 | Engineering | 63 | 🟠 High |\n| 3 | HR | 45 | 🟡 Medium |\n| 4 | Operations | 38 | 🟡 Medium |\n| 5 | Marketing | 22 | 🟢 Safe |\n| 6 | Legal | 18 | 🟢 Safe |\n\n**Finance** has the highest average risk — 3 users with scores above 60 currently in that department.`,
+
+  'predict': `🔮 **7-Day Threat Predictions (AI Model)**\n\n• **john.doe** — 78% chance of critical escalation. Trajectory suggests data exfiltration attempt.\n• **sarah.chen** — 61% chance of becoming critical. Pattern matches compromised account behavior.\n• **raj.kumar** — 44% chance. USB activity trending upward; restricted access attempts increasing.\n• **marcus.lee** — 37% chance. New city logins suggest potential credential sharing.\n\n*Based on Isolation Forest + behavioral trajectory analysis over 30-day window.*`,
+
+  'isolation forest': `🤖 **Isolation Forest — How It Works**\n\nIsolation Forest is an **unsupervised anomaly detection algorithm** that:\n\n1. **Builds random decision trees** on the feature space (login time, downloads, location, device, etc.)\n2. **Anomalies isolate faster** — they require fewer splits to separate from normal data\n3. **Anomaly score** = average path length across all trees (shorter = more anomalous)\n4. **Score > threshold** → flagged as anomalous behavior\n\n**Advantages for insider threat detection:**\n• No labeled training data needed\n• Works well with high-dimensional behavioral data\n• Computationally efficient for real-time monitoring\n• Industry standard used by Splunk, CrowdStrike, and IBM QRadar`,
+
+  'top 3': `⚡ **Top 3 Active Threats Right Now:**\n\n🥇 **john.doe** — Risk 94 (CRITICAL)\nDownloaded 4.8GB + impossible travel + 3AM login + unknown device\n\n🥈 **sarah.chen** — Risk 72 (HIGH)\nImpossible travel + after-hours + personal device in use\n\n🥉 **raj.kumar** — Risk 61 (HIGH)\nUSB transfer of 450MB + attempted restricted directory access\n\n**Recommended action:** Suspend john.doe's session immediately and initiate incident response.`,
+};
+
+// ════════════════════════════════════════
+//   NAVIGATION
+// ════════════════════════════════════════
+
+function launchDashboard() {
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  initDashboard();
+}
+
+function exitDashboard() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('landing').style.display = 'block';
+}
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  const titles = {
+    overview: ['Security Overview', 'Real-time threat intelligence dashboard'],
+    threats: ['Live Alerts', 'Active incidents requiring investigation'],
+    users: ['User Analytics', 'Behavioral profiles and risk scores'],
+    riskmap: ['Threat Map', 'Global login activity and anomaly locations'],
+    riskscorer: ['AI Risk Scorer', 'Explainable AI risk analysis per user'],
+    anomalylog: ['Anomaly Event Log', 'Real-time behavioral event stream'],
+    predictions: ['Threat Predictions', 'AI-powered 7-day threat forecasting'],
+    assistant: ['AI Security Assistant', 'Chat with your GenAI security analyst'],
+    reports: ['Security Reports', 'Download threat reports and analytics'],
+  };
+  const [title, sub] = titles[name] || ['SentinelAI', ''];
+  document.getElementById('page-title').textContent = title;
+  document.getElementById('page-sub').textContent = sub;
+}
+
+// ════════════════════════════════════════
+//   CLOCK
+// ════════════════════════════════════════
+
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-IN', { hour12: false });
+  const el = document.getElementById('live-time');
+  if (el) el.textContent = t;
+}
+setInterval(updateClock, 1000);
+
+// ════════════════════════════════════════
+//   COUNTER ANIMATION
+// ════════════════════════════════════════
+
+function animateCounter(el, target, duration = 1500) {
+  const start = performance.now();
+  const from = parseInt(el.textContent) || 0;
+  function step(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (target - from) * ease);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
+
+// ════════════════════════════════════════
+//   TICKER
+// ════════════════════════════════════════
+
+function initTicker() {
+  const items = [
+    { level: 'crit', text: 'CRITICAL: john.doe — 4.8GB download spike — Risk 94' },
+    { level: 'high', text: 'HIGH: sarah.chen — Impossible travel detected — Risk 72' },
+    { level: 'high', text: 'HIGH: raj.kumar — USB transfer 450MB — Risk 61' },
+    { level: 'med', text: 'MEDIUM: aisha.patel — Login at 2:45 AM — Risk 55' },
+    { level: 'med', text: 'MEDIUM: alex.brown — New city login from London' },
+    { level: 'low', text: 'INFO: 142 users currently being monitored' },
+    { level: 'crit', text: 'ALERT: Isolation Forest model flagged 7 anomalies in last hour' },
+    { level: 'high', text: 'HIGH: New device detected on corporate network — 00:1B:44:11:3A:B7' },
+    { level: 'med', text: 'MEDIUM: marcus.lee — Unusual application usage pattern detected' },
+    { level: 'low', text: 'INFO: Daily risk report generated — 3 critical, 4 high, 5 medium' },
+  ];
+
+  const html = [...items, ...items].map(i =>
+    `<span class="ticker-item"><span class="t-label ${i.level}">${i.level.toUpperCase()}</span> ${i.text}</span>`
+  ).join('');
+
+  document.getElementById('ticker').innerHTML = html;
+}
+
+// ════════════════════════════════════════
+//   CHART.JS HELPERS
+// ════════════════════════════════════════
+
+Chart.defaults.color = '#5a7394';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = 'Inter, sans-serif';
+
+function makeChart(id, config) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  if (canvas._chart) { canvas._chart.destroy(); }
+  const chart = new Chart(canvas.getContext('2d'), config);
+  canvas._chart = chart;
+  return chart;
+}
+
+function initCharts() {
+  // LOGIN CHART
+  const loginLabels = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2,'0')}:00`);
+  const loginData = [2,1,3,8,0,1,12,45,62,58,71,80,73,55,68,72,61,48,32,24,16,10,5,3];
+  const anomalyPoints = loginData.map((v,i) => (i === 3 ? v : null)); // 3AM spike
+
+  makeChart('loginChart', {
+    type: 'line',
+    data: {
+      labels: loginLabels,
+      datasets: [
+        {
+          label: 'Logins',
+          data: loginData,
+          borderColor: '#00d4ff',
+          backgroundColor: 'rgba(0,212,255,0.07)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: loginData.map((v,i) => i===3 ? 6 : 0),
+          pointBackgroundColor: loginData.map((v,i) => i===3 ? '#ff3d5a' : '#00d4ff'),
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, beginAtZero: true },
+      },
+    },
+  });
+
+  // RISK DONUT
+  makeChart('riskDonut', {
+    type: 'doughnut',
+    data: {
+      labels: ['Safe', 'Medium', 'High', 'Critical'],
+      datasets: [{ data: [118, 17, 4, 3], backgroundColor: ['#00e676','#ffb300','#ff6d00','#ff3d5a'], borderWidth: 0, hoverOffset: 6 }],
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} users` } } },
+      cutout: '68%',
+    },
+  });
+
+  // DOWNLOAD CHART
+  const dlLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dlNormal = [22,18,25,20,19,5,8];
+  const dlAnomaly = [null,null,null,null,4800,null,null];
+
+  makeChart('downloadChart', {
+    type: 'bar',
+    data: {
+      labels: dlLabels,
+      datasets: [
+        { label: 'Normal', data: dlNormal, backgroundColor: 'rgba(0,212,255,0.3)', borderColor: '#00d4ff', borderWidth: 1, borderRadius: 4 },
+        { label: 'Anomalous', data: dlAnomaly, backgroundColor: 'rgba(255,61,90,0.6)', borderColor: '#ff3d5a', borderWidth: 1, borderRadius: 4 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 12 } } },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => v > 999 ? (v/1000)+'GB' : v+'MB' } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+
+  // ALERT TIMELINE
+  const atkLabels = Array.from({ length: 12 }, (_, i) => `${(8+i).toString().padStart(2,'0')}:00`);
+  makeChart('alertTimeline', {
+    type: 'bar',
+    data: {
+      labels: atkLabels,
+      datasets: [
+        { label: 'Critical', data: [0,0,0,0,0,0,1,0,0,1,0,1], backgroundColor: 'rgba(255,61,90,0.7)', borderRadius: 3 },
+        { label: 'High', data: [0,0,1,0,0,1,0,0,1,0,0,0], backgroundColor: 'rgba(255,109,0,0.6)', borderRadius: 3 },
+        { label: 'Medium', data: [0,1,0,0,1,0,0,1,0,0,1,0], backgroundColor: 'rgba(255,179,0,0.5)', borderRadius: 3 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 12 } } },
+      scales: {
+        x: { grid: { display: false }, stacked: true },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, stacked: true, ticks: { stepSize: 1 } },
+      },
+    },
+  });
+
+  // WEEKLY RISK
+  const wkLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  makeChart('weeklyRisk', {
+    type: 'line',
+    data: {
+      labels: wkLabels,
+      datasets: [
+        { label: 'John Doe', data: [60,65,72,78,85,88,94], borderColor: '#ff3d5a', backgroundColor: 'rgba(255,61,90,0.06)', fill: true, tension: 0.4, borderWidth: 2 },
+        { label: 'Sarah Chen', data: [40,45,50,55,60,65,72], borderColor: '#ff6d00', backgroundColor: 'rgba(255,109,0,0.04)', fill: true, tension: 0.4, borderWidth: 2 },
+        { label: 'Raj Kumar', data: [30,35,40,45,50,55,61], borderColor: '#ffb300', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 12 } } },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+
+  // ANOMALY TYPES
+  makeChart('anomalyTypes', {
+    type: 'bar',
+    indexAxis: 'y',
+    data: {
+      labels: ['Impossible Travel','Late-Night Login','Mass Download','USB Activity','New Device','Unusual App','Restricted Access'],
+      datasets: [{ data: [8,15,5,6,9,11,4], backgroundColor: ['#ff3d5a','#ff6d00','#ff3d5a','#ffb300','#ff6d00','#00d4ff','#ffb300'], borderRadius: 4 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' } }, y: { grid: { display: false } } },
+    },
+  });
+
+  // LOCATION CHART
+  makeChart('locationChart', {
+    type: 'doughnut',
+    data: {
+      labels: ['Bangalore','Mumbai','Delhi','New York','London','Singapore','Tokyo','Other'],
+      datasets: [{ data: [45,22,18,12,10,8,6,21], backgroundColor: ['#00d4ff','#7c4dff','#00e676','#ff3d5a','#ffb300','#ff6d00','#00bfa5','#546e7a'], borderWidth: 0, hoverOffset: 6 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 10 } } },
+      cutout: '55%',
+    },
+  });
+
+  // RISK HISTORY
+  const riskHistLabels = Array.from({ length: 14 }, (_, i) => `D-${13-i}`);
+  makeChart('riskHistory', {
+    type: 'line',
+    data: {
+      labels: riskHistLabels,
+      datasets: [{ label: 'Risk Score', data: [50,53,55,58,60,63,68,72,75,78,82,86,90,94], borderColor: '#ff3d5a', backgroundColor: 'rgba(255,61,90,0.08)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#ff3d5a' }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 },
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
+      },
+    },
+  });
+
+  // EVENT STREAM
+  const streamData = Array.from({ length: 60 }, () => Math.random() * 100);
+  makeChart('eventStream', {
+    type: 'line',
+    data: {
+      labels: streamData.map((_, i) => i),
+      datasets: [
+        { data: streamData, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.05)', fill: true, tension: 0.3, borderWidth: 1.5, pointRadius: 0 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 } },
+    },
+  });
+
+  // PREDICTION CHART
+  const futureLabels = ['Today','Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'];
+  makeChart('predictionChart', {
+    type: 'line',
+    data: {
+      labels: futureLabels,
+      datasets: [
+        { label: 'John Doe', data: [94, 95, null, null, null, null, null, null], borderColor: '#ff3d5a', tension: 0.4, borderWidth: 2, borderDash: [], fill: false },
+        { label: 'Predicted', data: [null, 95, 96, 97, 97, 98, 99, 99], borderColor: '#ff3d5a', borderDash: [6, 3], tension: 0.4, borderWidth: 2, fill: false },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 60, max: 100 }, x: { grid: { display: false } } },
+    },
+  });
+
+  // TRAJECTORY CHART
+  makeChart('trajectoryChart', {
+    type: 'line',
+    data: {
+      labels: ['W-4','W-3','W-2','W-1','Now'],
+      datasets: [
+        { label: 'John', data: [60, 70, 78, 88, 94], borderColor: '#ff3d5a', tension: 0.4, borderWidth: 2.5 },
+        { label: 'Sarah', data: [35, 45, 55, 65, 72], borderColor: '#ff6d00', tension: 0.4, borderWidth: 2 },
+        { label: 'Raj', data: [25, 35, 45, 52, 61], borderColor: '#ffb300', tension: 0.4, borderWidth: 2 },
+        { label: 'Alex', data: [20, 25, 30, 38, 45], borderColor: '#00d4ff', tension: 0.4, borderWidth: 1.5 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 10 } } },
+      scales: { y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 100 }, x: { grid: { display: false } } },
+    },
+  });
+
+  // MONTHLY CHART
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  makeChart('monthlyChart', {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Critical', data: [2,1,3,2,4,3,5,4,6,5,7,3], backgroundColor: 'rgba(255,61,90,0.7)', borderRadius: 4 },
+        { label: 'High', data: [5,4,6,5,7,6,8,7,9,8,10,7], backgroundColor: 'rgba(255,109,0,0.6)', borderRadius: 4 },
+        { label: 'Medium', data: [8,7,9,8,10,9,11,10,12,11,13,10], backgroundColor: 'rgba(255,179,0,0.5)', borderRadius: 4 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { boxWidth: 10, padding: 12 } } },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.04)' } },
+      },
+    },
+  });
+}
+
+// ════════════════════════════════════════
+//   UPDATE LOGIN CHART
+// ════════════════════════════════════════
+
+function updateLoginChart(period) {
+  // In a real app this would fetch new data
+  showToast('info', '📊 Chart Updated', `Showing login data for: ${period}`);
+}
+
+// ════════════════════════════════════════
+//   ALERTS
+// ════════════════════════════════════════
+
+let allAlerts = [...ALERTS];
+
+function renderAlerts() {
+  const overviewEl = document.getElementById('overview-alerts');
+  const allEl = document.getElementById('all-alerts-list');
+  const html = allAlerts.map(a => `
+    <div class="alert-item" onclick="openIncident(${a.id})">
+      <div class="alert-dot ${a.severity}"></div>
+      <div class="alert-content">
+        <div class="alert-user">${a.icon} ${a.user}</div>
+        <div class="alert-reason">${a.reason}</div>
+        <div class="alert-time">🕐 ${a.time} · ${a.severity.toUpperCase()}</div>
+      </div>
+      <div class="alert-risk ${a.severity}">${a.risk}</div>
+    </div>
+  `).join('');
+
+  if (overviewEl) overviewEl.innerHTML = html;
+  if (allEl) allEl.innerHTML = html;
+
+  const cnt = allAlerts.filter(a => a.severity === 'critical' || a.severity === 'high').length;
+  document.getElementById('alert-badge').textContent = allAlerts.filter(a => a.severity === 'critical').length;
+  document.getElementById('kpi-threats').textContent = allAlerts.filter(a => a.severity === 'critical').length;
+  const lc = document.getElementById('live-alert-count');
+  if (lc) lc.textContent = allAlerts.length;
+  const ac = document.getElementById('all-alert-count');
+  if (ac) ac.textContent = allAlerts.length;
+}
+
+function filterAlerts(severity) {
+  const items = document.querySelectorAll('.alert-item');
+  items.forEach(item => {
+    const dot = item.querySelector('.alert-dot');
+    if (severity === 'all' || dot.classList.contains(severity)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+function addNewAlert() {
+  const templates = [
+    { user: 'David Park', userId: 'david', severity: 'critical', risk: 88, reason: 'Database dump attempt detected — 200,000 records accessed in bulk. Lateral movement to admin server.', icon: '🚨' },
+    { user: 'Nina Ross', userId: 'nina', severity: 'high', risk: 67, reason: 'VPN from anonymous proxy in Romania. File access pattern deviates 340% from baseline.', icon: '⚠️' },
+    { user: 'Kevin Rao', userId: 'kevin', severity: 'medium', risk: 51, reason: 'Weekend login from unregistered device. Cloud storage upload of 300MB.', icon: '🔔' },
+  ];
+  const t = templates[Math.floor(Math.random() * templates.length)];
+  const now = new Date();
+  const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+  const newAlert = { id: allAlerts.length + 1, time: ts, ...t };
+  allAlerts.unshift(newAlert);
+  renderAlerts();
+  showToast(t.severity === 'critical' ? 'critical' : 'warning', `${t.icon} New ${t.severity.toUpperCase()} Alert`, `${t.user} — Risk ${t.risk}`);
+}
+
+// ════════════════════════════════════════
+//   USER TABLE
+// ════════════════════════════════════════
+
+function renderUsers(users) {
+  const tbody = document.getElementById('user-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = users.map(u => {
+    const riskColor = u.risk >= 80 ? 'var(--red)' : u.risk >= 60 ? 'var(--orange)' : u.risk >= 40 ? 'var(--yellow)' : 'var(--green)';
+    return `
+      <tr onclick="openUserDetail('${u.id}')">
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar-sm" style="background: linear-gradient(135deg, ${u.color}, ${u.color}88);">${u.initials}</div>
+            <div>
+              <div style="font-weight: 600; font-size: 0.85rem;">${u.name}</div>
+              <div style="font-size: 0.7rem; color: var(--text3);">Last: ${u.lastSeen}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color: var(--text2); font-size: 0.82rem;">${u.dept}</td>
+        <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: ${u.loginTime.includes('AM') && parseInt(u.loginTime) < 6 ? 'var(--red)' : 'var(--text2)'};">${u.loginTime}</td>
+        <td style="font-size: 0.82rem; color: var(--text2);">📍 ${u.location}</td>
+        <td style="font-size: 0.78rem; color: var(--text2);">💻 ${u.device}</td>
+        <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 600; color: ${parseFloat(u.downloads) > 100 ? 'var(--red)' : 'var(--text)'};">${u.downloads}</td>
+        <td>
+          <div class="risk-bar-wrap">
+            <div class="risk-bar"><div class="risk-bar-fill" style="width: ${u.risk}%; background: ${riskColor};"></div></div>
+            <span class="risk-score-num" style="color: ${riskColor};">${u.risk}</span>
+          </div>
+        </td>
+        <td><span class="badge ${u.status}">${u.status.toUpperCase()}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterUsers(query) {
+  const filtered = USERS.filter(u =>
+    u.name.toLowerCase().includes(query.toLowerCase()) ||
+    u.dept.toLowerCase().includes(query.toLowerCase()) ||
+    u.location.toLowerCase().includes(query.toLowerCase())
+  );
+  renderUsers(filtered);
+}
+
+function sortUsers(key) {
+  let sorted = [...USERS];
+  if (key === 'risk-desc') sorted.sort((a, b) => b.risk - a.risk);
+  else if (key === 'risk-asc') sorted.sort((a, b) => a.risk - b.risk);
+  else if (key === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+  renderUsers(sorted);
+}
+
+// ════════════════════════════════════════
+//   THREAT MAP
+// ════════════════════════════════════════
+
+function initMap() {
+  const container = document.getElementById('map-dots-container');
+  if (!container) return;
+
+  const locations = [
+    { name: 'Bangalore', x: 70, y: 52, risk: 'safe', count: 45 },
+    { name: 'Mumbai', x: 67, y: 50, risk: 'high', count: 22 },
+    { name: 'Delhi', x: 69, y: 44, risk: 'medium', count: 18 },
+    { name: 'New York', x: 22, y: 38, risk: 'critical', count: 1 },
+    { name: 'London', x: 46, y: 30, risk: 'medium', count: 10 },
+    { name: 'Singapore', x: 77, y: 62, risk: 'high', count: 8 },
+    { name: 'Tokyo', x: 83, y: 37, risk: 'safe', count: 6 },
+    { name: 'Sydney', x: 84, y: 75, risk: 'safe', count: 5 },
+  ];
+
+  const colorMap = { critical: 'var(--red)', high: 'var(--orange)', medium: 'var(--yellow)', safe: 'var(--green)' };
+
+  container.innerHTML = locations.map(loc => `
+    <div class="map-dot" style="left: ${loc.x}%; top: ${loc.y}%; color: ${colorMap[loc.risk]}; background: ${colorMap[loc.risk]}; width: ${8 + loc.count * 0.15}px; height: ${8 + loc.count * 0.15}px;" title="${loc.name}: ${loc.count} users">
+      <span class="map-dot-label">${loc.name}</span>
+    </div>
+  `).join('');
+
+  // Draw impossible travel line
+  const svg = document.getElementById('travel-svg');
+  if (svg) {
+    svg.innerHTML = `
+      <line x1="67%" y1="50%" x2="22%" y2="38%" stroke="#ff3d5a" stroke-width="1.5" stroke-dasharray="6,3" opacity="0.7"/>
+      <text x="44%" y="41%" fill="#ff3d5a" font-size="9" text-anchor="middle" font-family="JetBrains Mono, monospace">impossible travel</text>
+    `;
+  }
+}
+
+// ════════════════════════════════════════
+//   RISK SCORER
+// ════════════════════════════════════════
+
+function updateRiskScore(userId) {
+  const d = RISK_DATA[userId];
+  if (!d) return;
+
+  // Update gauge
+  const gaugeNum = document.getElementById('gauge-num');
+  gaugeNum.textContent = d.score;
+  gaugeNum.style.color = d.color;
+
+  // Gauge needle angle: 0 = left (0 risk), 180 = right (100 risk)
+  const angle = -90 + (d.score / 100) * 180;
+  const rad = (angle * Math.PI) / 180;
+  const cx = 100, cy = 105, len = 70;
+  const x2 = cx + len * Math.cos(rad);
+  const y2 = cy + len * Math.sin(rad);
+  const needle = document.getElementById('gauge-needle');
+  if (needle) { needle.setAttribute('x2', x2); needle.setAttribute('y2', y2); }
+
+  // Arc: stroke-dashoffset shrinks as score increases
+  const arc = document.getElementById('gauge-arc');
+  if (arc) {
+    const total = 267;
+    const offset = total - (d.score / 100) * total;
+    arc.setAttribute('stroke-dashoffset', offset);
+  }
+
+  // Update label
+  const labelEl = document.querySelector('.risk-gauge-label');
+  if (labelEl) labelEl.textContent = d.label;
+
+  // Render factors
+  const factorsEl = document.getElementById('risk-factors');
+  if (factorsEl) {
+    factorsEl.innerHTML = d.factors.map(f => {
+      const pct = Math.round((f.score / f.max) * 100);
+      const col = pct > 80 ? 'var(--red)' : pct > 60 ? 'var(--orange)' : pct > 40 ? 'var(--yellow)' : 'var(--green)';
+      return `
+        <div class="risk-factor">
+          <span class="risk-factor-label">${f.name}</span>
+          <div class="risk-factor-bar"><div class="risk-factor-fill" style="width: ${(f.score/f.max)*100}%; background: ${col};"></div></div>
+          <span class="risk-factor-score" style="color: ${col};">${f.score}/${f.max}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Render AI explain
+  const explainEl = document.getElementById('ai-explain-panel');
+  if (explainEl) {
+    const sevColors = { critical: 'var(--red)', high: 'var(--orange)', medium: 'var(--yellow)', low: 'var(--green)' };
+    explainEl.innerHTML = d.explain.map(e => `
+      <div style="display: flex; gap: 1rem; padding: 1rem; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); border-left: 3px solid ${sevColors[e.severity]};">
+        <span style="font-size: 1.3rem; flex-shrink: 0;">${e.icon}</span>
+        <div>
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.25rem; color: ${sevColors[e.severity]};">${e.title}</div>
+          <div style="font-size: 0.8rem; color: var(--text2); line-height: 1.6;">${e.detail}</div>
+        </div>
+        <span class="badge ${e.severity}" style="margin-left: auto; align-self: flex-start; flex-shrink: 0;">${e.severity}</span>
+      </div>
+    `).join('');
+  }
+
+  // Update risk history chart for this user
+  const histData = {
+    john: [50,53,55,58,60,63,68,72,75,78,82,86,90,94],
+    sarah: [28,30,33,36,40,44,48,52,56,60,64,68,70,72],
+    raj: [20,22,25,28,32,35,38,42,45,48,52,56,58,61],
+    alex: [15,18,20,22,25,27,30,32,34,36,38,40,43,45],
+    priya: [10,12,11,13,12,15,14,16,18,20,22,24,26,28],
+  };
+  const canvas = document.getElementById('riskHistory');
+  if (canvas && canvas._chart) {
+    canvas._chart.data.datasets[0].data = histData[userId] || histData.john;
+    canvas._chart.data.datasets[0].borderColor = d.color;
+    canvas._chart.data.datasets[0].backgroundColor = d.color + '15';
+    canvas._chart.update();
+  }
+}
+
+// ════════════════════════════════════════
+//   ANOMALY LOG
+// ════════════════════════════════════════
+
+const LOG_TEMPLATES = [
+  { level: 'CRIT', msg: 'Mass download detected: 4.8GB in 180s', user: 'john.doe', color: 'var(--red)' },
+  { level: 'CRIT', msg: 'Impossible travel: Mumbai→New York (4 min)', user: 'john.doe', color: 'var(--red)' },
+  { level: 'HIGH', msg: 'Unknown device connected to corp network', user: 'john.doe', color: 'var(--orange)' },
+  { level: 'HIGH', msg: 'USB transfer: 1240 files, 450MB', user: 'raj.kumar', color: 'var(--orange)' },
+  { level: 'HIGH', msg: 'After-hours login detected (23:22)', user: 'sarah.chen', color: 'var(--orange)' },
+  { level: 'MED', msg: 'New city login from London (geo-change)', user: 'alex.brown', color: 'var(--yellow)' },
+  { level: 'MED', msg: 'Restricted dir access attempt: /finance/payroll', user: 'raj.kumar', color: 'var(--yellow)' },
+  { level: 'MED', msg: 'Employee records access at 02:45 AM (×3)', user: 'aisha.patel', color: 'var(--yellow)' },
+  { level: 'INFO', msg: 'Isolation Forest model retrained on 30d data', user: 'system', color: 'var(--primary)' },
+  { level: 'INFO', msg: 'Baseline updated: 142 user profiles refreshed', user: 'system', color: 'var(--primary)' },
+  { level: 'LOW', msg: 'Unusual app usage: Wireshark on end-user device', user: 'marcus.lee', color: 'var(--text2)' },
+  { level: 'LOW', msg: 'Weekend login (Sat 11:34 AM)', user: 'priya.sharma', color: 'var(--text2)' },
+];
+
+function generateLog() {
+  const tbody = document.getElementById('anomaly-log-body');
+  if (!tbody) return;
+
+  const now = new Date();
+  const logs = Array.from({ length: 20 }, (_, i) => {
+    const t = new Date(now.getTime() - i * 180000);
+    const ts = t.toLocaleTimeString('en-IN', { hour12: false });
+    const entry = LOG_TEMPLATES[i % LOG_TEMPLATES.length];
+    return `
+      <div class="log-item">
+        <span class="log-ts">${ts}</span>
+        <span class="log-level badge ${entry.level === 'CRIT' ? 'critical' : entry.level === 'HIGH' ? 'high' : entry.level === 'MED' ? 'medium' : 'safe'}" style="font-size: 0.65rem;">${entry.level}</span>
+        <span class="log-user">${entry.user}</span>
+        <span class="log-msg">${entry.msg}</span>
+      </div>
+    `;
+  }).join('');
+  tbody.innerHTML = logs;
+}
+
+// ════════════════════════════════════════
+//   AI ASSISTANT
+// ════════════════════════════════════════
+
+let queryCount = 0;
+let explainedCount = 0;
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMessage('user', msg);
+  const response = getAIResponse(msg);
+  setTimeout(() => addMessage('ai', response), 800 + Math.random() * 400);
+  queryCount++;
+  const qc = document.getElementById('query-count');
+  if (qc) qc.textContent = queryCount;
+}
+
+function quickAsk(text) {
+  document.getElementById('chat-input').value = text;
+  sendChat();
+  showPage('assistant', document.getElementById('nav-assistant'));
+}
+
+function addMessage(type, text) {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  const initials = type === 'ai' ? '🤖' : 'AD';
+  const html = `
+    <div class="msg ${type}">
+      <div class="msg-avatar">${initials}</div>
+      <div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}</div>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', html);
+  container.scrollTop = container.scrollHeight;
+}
+
+function getAIResponse(msg) {
+  const lower = msg.toLowerCase();
+  if (lower.includes('john') && (lower.includes('why') || lower.includes('flag'))) {
+    explainedCount++;
+    const ec = document.getElementById('explained-count');
+    if (ec) ec.textContent = explainedCount;
+    return AI_RESPONSES['john.doe'];
+  }
+  if (lower.includes('critical') || lower.includes('all alert')) return AI_RESPONSES['critical'];
+  if (lower.includes('sarah') && (lower.includes('risk') || lower.includes('score'))) return AI_RESPONSES['sarah.chen'];
+  if (lower.includes('impossible travel') || lower.includes('travel')) return AI_RESPONSES['impossible travel'];
+  if (lower.includes('department') || lower.includes('highest risk')) return AI_RESPONSES['department'];
+  if (lower.includes('predict') || lower.includes('7 day') || lower.includes('forecast')) return AI_RESPONSES['predict'];
+  if (lower.includes('isolation forest') || lower.includes('how does')) return AI_RESPONSES['isolation forest'];
+  if (lower.includes('top 3') || lower.includes('top threat')) return AI_RESPONSES['top 3'];
+
+  // Generic response
+  explainedCount++;
+  const ec = document.getElementById('explained-count');
+  if (ec) ec.textContent = explainedCount;
+  return `🤖 **SentinelAI Analysis:**\n\nI'm analyzing your query: "${msg}"\n\nBased on current monitoring data:\n• 142 users actively monitored\n• 3 critical incidents flagged today\n• Isolation Forest model running at 99.2% accuracy\n• Last model training: 2 hours ago\n\nFor specific user analysis, try: "Why was john.doe flagged?" or "What is the risk score for sarah.chen?"\n\nFor threat predictions, ask: "Predict threats for next 7 days"`;
+}
+
+// ════════════════════════════════════════
+//   MODALS
+// ════════════════════════════════════════
+
+function openIncident(id) {
+  const a = allAlerts.find(x => x.id === id);
+  if (!a) return;
+
+  const u = USERS.find(x => x.id === a.userId) || {};
+  document.getElementById('modal-title').textContent = `🔍 Incident #${id.toString().padStart(4,'0')} — ${a.user}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-item-label">User</div>
+        <div class="detail-item-value">${a.user}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">Risk Score</div>
+        <div class="detail-item-value" style="color: ${a.severity === 'critical' ? 'var(--red)' : a.severity === 'high' ? 'var(--orange)' : 'var(--yellow)'};">${a.risk}/100 — ${a.severity.toUpperCase()}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">Department</div>
+        <div class="detail-item-value">${u.dept || 'N/A'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">Time Detected</div>
+        <div class="detail-item-value" style="font-family: 'JetBrains Mono', monospace;">${a.time}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">Location</div>
+        <div class="detail-item-value">📍 ${u.location || 'Unknown'}</div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item-label">Device</div>
+        <div class="detail-item-value">💻 ${u.device || 'Unknown'}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;">Anomaly Description</div>
+    <div style="font-size: 0.875rem; color: var(--text); line-height: 1.7; padding: 1rem; background: var(--bg3); border-radius: var(--radius); border-left: 3px solid ${a.severity === 'critical' ? 'var(--red)' : a.severity === 'high' ? 'var(--orange)' : 'var(--yellow)'}; margin-bottom: 1.5rem;">${a.reason}</div>
+
+    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;">Incident Timeline</div>
+    <div class="incident-timeline">
+      ${(u.anomalies || []).map((anomaly, idx) => `
+        <div class="timeline-item">
+          <div class="timeline-dot-wrap">
+            <div class="timeline-dot" style="background: ${idx===0 ? 'var(--red)' : 'var(--text3)'}; box-shadow: ${idx===0 ? '0 0 8px var(--red)' : 'none'};"></div>
+            ${idx < (u.anomalies.length-1) ? '<div class="timeline-line"></div>' : ''}
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-time">${a.time} +${idx*2}m</div>
+            <div class="timeline-text">${anomaly} detected by Isolation Forest model</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="divider"></div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="document.getElementById('modal-overlay').classList.remove('open'); quickAsk('Why was ${a.user.toLowerCase().replace(' ','.')} flagged?')">🤖 Ask AI Analyst</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-overlay').classList.remove('open')">Dismiss</button>
+      <button class="btn btn-ghost" style="margin-left: auto; color: var(--red);" onclick="document.getElementById('modal-overlay').classList.remove('open'); showToast('critical','🔒 Account Suspended','${a.user} session has been terminated and account locked.')">🔒 Suspend User</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openUserDetail(userId) {
+  const u = USERS.find(x => x.id === userId);
+  if (!u) return;
+  const d = RISK_DATA[userId];
+
+  document.getElementById('modal-title').textContent = `👤 ${u.name} — Behavioral Profile`;
+  document.getElementById('modal-body').innerHTML = `
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="user-avatar" style="width: 56px; height: 56px; font-size: 1rem; background: linear-gradient(135deg, ${u.color}, ${u.color}88);">${u.initials}</div>
+      <div>
+        <div style="font-size: 1.1rem; font-weight: 700;">${u.name}</div>
+        <div style="font-size: 0.8rem; color: var(--text2);">${u.dept} Department</div>
+        <div style="margin-top: 0.5rem;"><span class="badge ${u.status}">${u.status.toUpperCase()}</span></div>
+      </div>
+      <div style="margin-left: auto; text-align: right;">
+        <div style="font-size: 2rem; font-weight: 900; color: ${u.color};">${u.risk}</div>
+        <div style="font-size: 0.72rem; color: var(--text3);">RISK SCORE</div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-item-label">Last Login</div><div class="detail-item-value" style="font-family: 'JetBrains Mono', monospace;">${u.loginTime}</div></div>
+      <div class="detail-item"><div class="detail-item-label">Location</div><div class="detail-item-value">📍 ${u.location}</div></div>
+      <div class="detail-item"><div class="detail-item-label">Device</div><div class="detail-item-value">💻 ${u.device}</div></div>
+      <div class="detail-item"><div class="detail-item-label">Downloads Today</div><div class="detail-item-value">${u.downloads}</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;">Detected Anomalies</div>
+    ${u.anomalies.length ? `<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
+      ${u.anomalies.map(a => `<span class="badge ${u.status}">${a}</span>`).join('')}
+    </div>` : `<div style="color: var(--green); margin-bottom: 1.5rem; font-size: 0.85rem;">✅ No anomalies detected. Behavior within normal baseline.</div>`}
+
+    ${d ? `<div class="divider"></div>
+    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;">AI Explanation</div>
+    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+      ${d.explain.map(e => `<div style="font-size: 0.82rem; padding: 0.75rem; background: var(--bg3); border-radius: var(--radius-sm); border-left: 2px solid ${e.severity === 'critical' ? 'var(--red)' : e.severity === 'high' ? 'var(--orange)' : 'var(--green)'};">${e.icon} <strong>${e.title}:</strong> ${e.detail}</div>`).join('')}
+    </div>` : ''}
+
+    <div class="divider"></div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <button class="btn btn-primary" onclick="document.getElementById('modal-overlay').classList.remove('open'); showPage('riskscorer', document.getElementById('nav-riskscorer')); setTimeout(()=>{ document.getElementById('risk-user-select').value='${userId}'; updateRiskScore('${userId}'); }, 200);">📈 Full Risk Analysis</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-overlay').classList.remove('open')">Close</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openModal(type) {
+  if (type === 'pred-john') {
+    openUserDetail('john');
+  } else if (type === 'pred-sarah') {
+    openUserDetail('sarah');
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+// ════════════════════════════════════════
+//   TOAST
+// ════════════════════════════════════════
+
+function showToast(type, title, msg) {
+  const container = document.getElementById('toast-container');
+  const icons = { critical: '🚨', warning: '⚠️', info: 'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <span class="toast-icon">${icons[type] || '🔔'}</span>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>
+    <span class="toast-close" onclick="this.parentElement.remove()">✕</span>
+  `;
+  el.onclick = () => el.remove();
+  container.appendChild(el);
+  setTimeout(() => { if (el.parentElement) el.remove(); }, 5000);
+}
+
+// ════════════════════════════════════════
+//   REPORTS
+// ════════════════════════════════════════
+
+function downloadReport(type) {
+  const msgs = {
+    daily: 'Daily Threat Report — PDF',
+    weekly: 'Weekly Trend Report — PDF',
+    incident: 'Incident Report — PDF',
+  };
+  showToast('info', '📥 Report Generated', `${msgs[type]} is ready for download. (Demo mode: report simulated)`);
+}
+
+// ════════════════════════════════════════
+//   STATS COUNTER ANIMATION
+// ════════════════════════════════════════
+
+function initStatsCounters() {
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+    const target = parseInt(el.getAttribute('data-target'));
+    animateCounter(el, target);
+  });
+}
+
+// ════════════════════════════════════════
+//   REAL-TIME SIMULATION
+// ════════════════════════════════════════
+
+function simulateRealTime() {
+  // Randomly add alerts occasionally
+  setInterval(() => {
+    if (Math.random() < 0.15) {
+      addNewAlert();
+    }
+  }, 15000);
+
+  // Update live chart stream
+  setInterval(() => {
+    const canvas = document.getElementById('eventStream');
+    if (canvas && canvas._chart) {
+      const chart = canvas._chart;
+      chart.data.datasets[0].data.push(Math.random() * 100);
+      chart.data.datasets[0].data.shift();
+      chart.update('none');
+    }
+  }, 1000);
+
+  // Mini landing page animation
+  setInterval(() => {
+    const alerts = [
+      '🚨 CRITICAL: User "john.doe" — 4.8GB download in 3 minutes from new device — Risk Score: 94',
+      '⚠️ HIGH: User "sarah.chen" — Impossible travel: Bangalore → Singapore — Risk Score: 72',
+      '⚠️ HIGH: User "raj.kumar" — USB: 450MB transferred, 1240 files — Risk Score: 61',
+      '🔔 MEDIUM: User "aisha.patel" — Login at 2:45 AM, outside normal hours — Risk Score: 55',
+    ];
+    const el = document.getElementById('mini-alert-text');
+    if (el) el.textContent = alerts[Math.floor(Date.now() / 4000) % alerts.length];
+  }, 4000);
+}
+
+// ════════════════════════════════════════
+//   INIT DASHBOARD
+// ════════════════════════════════════════
+
+let dashboardInited = false;
+
+function initDashboard() {
+  if (dashboardInited) return;
+  dashboardInited = true;
+
+  updateClock();
+  renderAlerts();
+  renderUsers([...USERS].sort((a, b) => b.risk - a.risk));
+  initMap();
+  generateLog();
+  updateRiskScore('john');
+
+  setTimeout(() => {
+    initCharts();
+  }, 100);
+
+  // Welcome toast
+  setTimeout(() => {
+    showToast('critical', '🚨 Critical Alert', 'john.doe — 4.8GB download detected');
+  }, 1500);
+
+  setTimeout(() => {
+    showToast('warning', '⚠️ High Risk', 'sarah.chen — Impossible travel detected');
+  }, 3000);
+
+  simulateRealTime();
+}
+
+// ════════════════════════════════════════
+//   LANDING INIT
+// ════════════════════════════════════════
+
+initTicker();
+initStatsCounters();
+
+// Mini counter animate
+setTimeout(() => {
+  document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+    animateCounter(el, parseInt(el.getAttribute('data-target')));
+  });
+}, 200);
+
+// ESC to close modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open');
+  if (e.key === 'Enter' && document.getElementById('chat-input') === document.activeElement) sendChat();
+});
+
+</script>
+</body>
+</html>
