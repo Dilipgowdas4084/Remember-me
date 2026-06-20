@@ -11,7 +11,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,13 +21,6 @@ export default function LoginPage() {
       setError(result.error || "Invalid email or password.");
       setLoading(false);
     }
-  };
-
-  const handleGoogle = () => {
-    setGoogleLoading(true);
-    setError(null);
-    // Direct redirect to our own Google OAuth route — no NextAuth dependency
-    window.location.href = "/api/auth/google";
   };
 
   return (
@@ -60,25 +52,21 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* ── GOOGLE BUTTON ── */}
-        <button
-          onClick={handleGoogle}
-          disabled={googleLoading || loading}
-          className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl border-2 border-border bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm font-semibold text-sm text-gray-700 mb-4 disabled:opacity-50 active:scale-[0.98]"
+        {/* ── GOOGLE BUTTON — plain <a> tag, always works ── */}
+        <a
+          href="/api/auth/google"
+          className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm font-semibold text-sm text-gray-700 mb-4 active:scale-[0.98] no-underline"
+          style={{ textDecoration: "none" }}
         >
-          {googleLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-          ) : (
-            /* Official Google "G" SVG */
-            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-              <path d="M47.532 24.552c0-1.636-.132-3.232-.388-4.776H24.48v9.046h12.96c-.572 3.004-2.248 5.548-4.764 7.248v5.992h7.704c4.508-4.152 7.152-10.268 7.152-17.51z" fill="#4285F4"/>
-              <path d="M24.48 48c6.48 0 11.916-2.144 15.888-5.824l-7.704-5.992c-2.148 1.44-4.896 2.292-8.184 2.292-6.288 0-11.616-4.244-13.524-9.952H3.012v6.184C6.96 43.228 15.132 48 24.48 48z" fill="#34A853"/>
-              <path d="M10.956 28.524A14.514 14.514 0 0 1 9.96 24c0-1.564.268-3.08.996-4.524V13.29H3.012A23.982 23.982 0 0 0 .48 24c0 3.86.924 7.5 2.532 10.708l7.944-6.184z" fill="#FBBC05"/>
-              <path d="M24.48 9.524c3.54 0 6.72 1.22 9.22 3.6l6.876-6.876C36.396 2.372 30.96 0 24.48 0 15.132 0 6.96 4.772 3.012 13.29l7.944 6.184c1.908-5.708 7.236-9.95 13.524-9.95z" fill="#EA4335"/>
-            </svg>
-          )}
-          {googleLoading ? "Connecting..." : "Continue with Google"}
-        </button>
+          {/* Official Google G logo */}
+          <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+            <path d="M47.532 24.552c0-1.636-.132-3.232-.388-4.776H24.48v9.046h12.96c-.572 3.004-2.248 5.548-4.764 7.248v5.992h7.704c4.508-4.152 7.152-10.268 7.152-17.51z" fill="#4285F4"/>
+            <path d="M24.48 48c6.48 0 11.916-2.144 15.888-5.824l-7.704-5.992c-2.148 1.44-4.896 2.292-8.184 2.292-6.288 0-11.616-4.244-13.524-9.952H3.012v6.184C6.96 43.228 15.132 48 24.48 48z" fill="#34A853"/>
+            <path d="M10.956 28.524A14.514 14.514 0 0 1 9.96 24c0-1.564.268-3.08.996-4.524V13.29H3.012A23.982 23.982 0 0 0 .48 24c0 3.86.924 7.5 2.532 10.708l7.944-6.184z" fill="#FBBC05"/>
+            <path d="M24.48 9.524c3.54 0 6.72 1.22 9.22 3.6l6.876-6.876C36.396 2.372 30.96 0 24.48 0 15.132 0 6.96 4.772 3.012 13.29l7.944 6.184c1.908-5.708 7.236-9.95 13.524-9.95z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </a>
 
         {/* Divider */}
         <div className="flex items-center gap-3 mb-5">
@@ -121,7 +109,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || googleLoading}
+            disabled={loading}
             className="w-full py-3.5 bg-primary text-white font-bold rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-1"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -130,7 +118,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center mt-6 text-xs text-muted-foreground">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/auth/register" className="text-primary font-bold hover:underline">
             Register here
           </Link>
