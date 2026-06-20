@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { useAuth } from "@/frontend/providers";
 import { Heart, Key, Mail, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 
@@ -25,15 +24,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = () => {
     setGoogleLoading(true);
     setError(null);
-    try {
-      await signIn("google", { callbackUrl: "/api/auth/set-cookie" });
-    } catch {
-      setError("Google sign-in failed. Please try again.");
-      setGoogleLoading(false);
-    }
+    // Direct redirect to our own Google OAuth route — no NextAuth dependency
+    window.location.href = "/api/auth/google";
   };
 
   return (

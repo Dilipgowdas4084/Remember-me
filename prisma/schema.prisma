@@ -58,16 +58,19 @@ model Patient {
   profileImage      String?
   doctorId          String
   doctor            Doctor             @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  caregivers        PatientAssignment[]
-  memories          Memory[]
-  knownPeople       KnownPerson[]
-  places            Place[]
-  allergies         Allergy[]
-  medications       Medication[]
-  reminders         Reminder[]
-  journals          Journal[]
-  emergencyContacts EmergencyContact[]
-  voiceNotes        VoiceNote[]
+  caregivers          PatientAssignment[]
+  memories            Memory[]
+  knownPeople         KnownPerson[]
+  places              Place[]
+  allergies           Allergy[]
+  medications         Medication[]
+  reminders           Reminder[]
+  journals            Journal[]
+  emergencyContacts   EmergencyContact[]
+  voiceNotes          VoiceNote[]
+  cognitiveTests      CognitiveTestSession[]
+  moodLogs            MoodLog[]
+  medicationLogs      MedicationLog[]
   latitude          Float?
   longitude         Float?
   locationUpdatedAt DateTime?
@@ -190,9 +193,10 @@ model Medication {
   reminderTime String?  // HH:MM
   imageUrl     String?
   instructions String?
-  active       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  active          Boolean         @default(true)
+  medicationLogs  MedicationLog[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@map("medications")
 }
@@ -251,4 +255,41 @@ model VoiceNote {
   updatedAt DateTime @updatedAt
 
   @@map("voice_notes")
+}
+
+model CognitiveTestSession {
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  gameType   String   // FACE_MATCH | WORD_RECALL | ROUTINE_ORDER | MED_RECALL
+  score      Int      // 0–100
+  totalQ     Int      // total questions
+  correctQ   Int      // correct answers
+  durationMs Int?     // milliseconds taken
+  createdAt  DateTime @default(now())
+
+  @@map("cognitive_test_sessions")
+}
+
+model MoodLog {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  mood      String   // HAPPY | CALM | ANXIOUS | SAD | CONFUSED | ANGRY
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@map("mood_logs")
+}
+
+model MedicationLog {
+  id           String     @id @default(uuid())
+  patientId    String
+  patient      Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicationId String
+  medication   Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  takenAt      DateTime   @default(now())
+  skipped      Boolean    @default(false)
+
+  @@map("medication_logs")
 }

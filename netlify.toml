@@ -6,6 +6,10 @@
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
   PRISMA_GENERATE_SKIP_AUTOINSTALL = "true"
+  # IMPORTANT: Set NEXTAUTH_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID,
+  # GOOGLE_CLIENT_SECRET, DATABASE_URL, JWT_SECRET, and OPENAI_API_KEY
+  # in Netlify Dashboard → Site Settings → Environment Variables.
+  # NEXTAUTH_URL must be your Netlify site URL, e.g. https://your-site.netlify.app
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
