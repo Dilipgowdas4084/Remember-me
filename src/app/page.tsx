@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth, useTheme, useAccessibility } from "@/frontend/providers";
+import { useAuth, useAccessibility } from "@/frontend/providers";
 import {
   Heart, Shield, Brain, User, Settings, Activity,
-  MessageCircle, PhoneCall, Sun, Moon, ChevronDown,
+  MessageCircle, PhoneCall, ChevronDown,
   Volume2, MapPin, Menu, X, ArrowRight
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function LandingPage() {
   const { user } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
   const { speak } = useAccessibility();
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -73,9 +72,6 @@ export default function LandingPage() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-muted transition-colors" aria-label="Toggle theme">
-              {mounted && isDarkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
-            </button>
 
             {/* Desktop auth buttons */}
             {mounted && (

@@ -35,7 +35,7 @@ interface AccessibilityContextType {
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
-// --- THEME CONTEXT ---
+// --- THEME CONTEXT (light-only, no toggle needed) ---
 interface ThemeContextType {
   isDarkMode: boolean;
   toggleTheme: () => void;
@@ -56,8 +56,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   const [fontSize, setFontSizeState] = useState<FontSizeLevel>("normal");
   const [speechEnabled, setSpeechEnabledState] = useState(false);
 
-  // Theme State
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Theme State (always light — dark mode removed)
+  const isDarkMode = false;
+  const toggleTheme = () => {}; // no-op
 
   // Sync user state on load
   const refetchUser = async () => {
@@ -80,19 +81,11 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     refetchUser();
   }, []);
 
-  // Theme effect
   useEffect(() => {
+    // Always enforce light theme — clear any stored dark preference
     const root = window.document.documentElement;
-    const storedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
-    if (storedTheme === "dark" || (!storedTheme && prefersDark)) {
-      root.classList.add("dark");
-      setIsDarkMode(true);
-    } else {
-      root.classList.remove("dark");
-      setIsDarkMode(false);
-    }
+    root.classList.remove("dark");
+    localStorage.removeItem("theme");
 
     // Load accessibility settings
     const storedFontSize = localStorage.getItem("fontSize") as FontSizeLevel;
@@ -101,20 +94,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     const storedSpeech = localStorage.getItem("speechEnabled");
     if (storedSpeech) setSpeechEnabledState(storedSpeech === "true");
   }, []);
-
-  // Theme toggle
-  const toggleTheme = () => {
-    const root = window.document.documentElement;
-    if (isDarkMode) {
-      root.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
-    } else {
-      root.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
-    }
-  };
 
   // Font size setter
   const setFontSize = (level: FontSizeLevel) => {
