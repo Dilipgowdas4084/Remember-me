@@ -40,7 +40,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight">Welcome Back</h2>
-            <p className="text-sm text-muted-foreground mt-1">Sign in to access memory logs and dashboards</p>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to your RememberMe account</p>
           </div>
         </div>
 
@@ -51,29 +51,6 @@ export default function LoginPage() {
             <span>{error}</span>
           </div>
         )}
-
-        {/* ── GOOGLE BUTTON — plain <a> tag, always works ── */}
-        <a
-          href="/api/auth/google"
-          className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm font-semibold text-sm text-gray-700 mb-4 active:scale-[0.98] no-underline"
-          style={{ textDecoration: "none" }}
-        >
-          {/* Official Google G logo */}
-          <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-            <path d="M47.532 24.552c0-1.636-.132-3.232-.388-4.776H24.48v9.046h12.96c-.572 3.004-2.248 5.548-4.764 7.248v5.992h7.704c4.508-4.152 7.152-10.268 7.152-17.51z" fill="#4285F4"/>
-            <path d="M24.48 48c6.48 0 11.916-2.144 15.888-5.824l-7.704-5.992c-2.148 1.44-4.896 2.292-8.184 2.292-6.288 0-11.616-4.244-13.524-9.952H3.012v6.184C6.96 43.228 15.132 48 24.48 48z" fill="#34A853"/>
-            <path d="M10.956 28.524A14.514 14.514 0 0 1 9.96 24c0-1.564.268-3.08.996-4.524V13.29H3.012A23.982 23.982 0 0 0 .48 24c0 3.86.924 7.5 2.532 10.708l7.944-6.184z" fill="#FBBC05"/>
-            <path d="M24.48 9.524c3.54 0 6.72 1.22 9.22 3.6l6.876-6.876C36.396 2.372 30.96 0 24.48 0 15.132 0 6.96 4.772 3.012 13.29l7.944 6.184c1.908-5.708 7.236-9.95 13.524-9.95z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </a>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground font-semibold">or sign in with email</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
 
         {/* Email/Password Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
